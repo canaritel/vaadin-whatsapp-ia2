@@ -1,0 +1,491 @@
+/* ===================================================
+   PACIENTES
+=================================================== */
+
+/* Estilo de cada ítem del paciente */
+/* Estilo de cada ítem del paciente */
+.patient-item {
+    padding: 8px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f2f5;
+    transition: background-color 0.3s;
+    display: flex; /* Asegurar que use Flexbox */
+    align-items: center; /* Alinear verticalmente */
+    flex-wrap: nowrap; /* Previene el wrap */
+}
+
+/* Asegurar que el contenedor de información ocupe el espacio necesario */
+.patient-info {
+    flex-grow: 1;
+    min-width: 0; /* Permite que el contenido se reduzca adecuadamente */
+}
+
+.patient-item:hover {
+    background-color: #f5f6f6;
+}
+
+.patient-selected {
+    background-color: #efffff;
+    border-left: 4px solid #007bbb;
+}
+
+.patient-name {
+    font-weight: bold;
+    color: #111b21;
+}
+
+.patient-phone {
+    font-size: 0.9em;
+    color: #667781;
+}
+
+.patient-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #075e54;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Previene que el avatar se encoja */
+}
+
+/* Badge para mensajes no leídos */
+.unread-badge {
+    background-color: #25d366;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* ===================================================
+   BOTONES DE CATEGORÍA
+=================================================== */
+
+/* ===================================================
+   BOTONES DE CATEGORÍA - Efecto de Brillo
+=================================================== */
+
+/* Botón de categoría */
+.category-button {
+    margin: 0 5px;
+    min-width: 60px;
+    max-width: 220px;
+    text-align: center;
+    flex-shrink: 1;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: #ffffff;
+    color: #333;
+   
+    border-radius: 8px;
+    position: relative;
+    font-weight: 500;
+    padding: 10px 16px;
+}
+
+/* Efecto de brillo al hover */
+.category-button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(45deg) scale(0);
+    transition: transform 0.3s ease;
+}
+
+.category-button:hover::before {
+    transform: rotate(45deg) scale(1);
+}
+
+/* Hover effect */
+.category-button:hover {
+    box-shadow: 0 8px 16px rgba(0, 123, 255, 0.2);
+    transform: translateY(-3px);
+}
+
+/* Estado seleccionado del botón de categoría */
+.category-button-selected {
+    background-color: #007bff;
+    color: white;
+    border: 2px solid #007bff;
+}
+
+
+@media (max-width: 768px) {
+    .category-button {
+        min-width: 80px;
+        max-width: 150px;
+        font-size: 0.9em; /* Reducir el tamaño de la fuente en pantallas pequeñas */
+    }
+}
+
+/* ===================================================
+   HEADER DEL CHAT
+=================================================== */
+
+.chat-header {
+   padding: 10px; /* Espaciado interno */
+}
+
+/* Opcional: Ocultar la barra de desplazamiento en navegadores Webkit */
+.chat-header::-webkit-scrollbar {
+    display: none;
+}
+
+/* ===================================================
+   HEADER DE CLINICA DATOS
+=================================================== */
+
+.chat-header-datos {
+    background-color: #f5f5f5; /* Color de fondo del header */
+    padding: 10px; /* Espaciado interno */
+}
+
+
+/* Opcional: Ocultar la barra de desplazamiento en navegadores Webkit */
+.chat-header-datos::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* ===================================================
+   PANEL DE USUARIOS
+=================================================== */
+
+/* Panel izquierdo mejorado */
+.user-list-panel {
+    background: white;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header del panel de usuarios */
+.user-panel-header {
+    padding: 10px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Lista de pacientes */
+.patient-list {
+    overflow-y: auto; /* Habilita scroll si hay demasiados usuarios */
+    max-height: calc(100% - 60px); /* Ajusta el espacio disponible bajo el buscador */
+}
+
+/* Mensaje cuando no hay resultados */
+.no-results {
+    color: #999;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.empty-message {
+    text-align: center;
+    color: var(--lumo-contrast-30pct);
+    padding: 20px;
+    font-style: italic;
+}
+
+/* ===================================================
+   BOTONES DE ÍCONO
+=================================================== */
+
+/* Botón con ícono */
+.icon-button {
+    background-color: transparent; /* Fondo transparente */
+    border: none; /* Sin bordes */
+    cursor: pointer; /* Cambiar el cursor al pasar */
+    padding: 2px; /* Espaciado interno opcional */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button:hover {
+    color: var(--lumo-primary-color); /* Cambiar color al pasar el ratón */
+}
+
+/* Ícono dentro del botón */
+.icon-button vaadin-icon {
+    font-size: 30px; /* Tamaño del ícono ajustado */
+    width: 48px; /* Ajustar ancho */
+    height: 48px; /* Ajustar altura */
+}
+
+/* ===================================================
+   BOTONES DE ACCIÓN
+=================================================== */
+
+/* Botón de guardar
+.save-button {
+    background-color: var(--lumo-primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.save-button:hover {
+    background-color: var(--lumo-primary-color-contrast);
+}
+*/
+
+/* Botón de cerrar 
+.close-button {
+    background-color: var(--lumo-error-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+
+.close-button:hover {
+    background-color: var(--lumo-error-color-contrast);
+}
+*/
+
+/* ===================================================
+   CONTENEDORES Y TARJETAS
+=================================================== */
+
+/* Contenedor moderno */
+.clinical-chat-container {
+    background-color: #f0f2f5;
+    display: flex;
+    gap: 1px;
+}
+
+/* Tarjetas de datos clínicos */
+.clinical-data-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clinical-data-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ===================================================
+   VISTAS DE ADMINISTRACIÓN Y CLIENTE
+=================================================== */
+
+/* Estilos para la vista de administración */
+.category-grid {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.category-item {
+    padding: 16px;
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* Estilos para la vista del cliente */
+.category-accordion {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 8px;
+}
+
+.subcategory-button {
+    width: 100%;
+    text-align: left;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    transition: background-color 0.2s;
+    font-size: 1em;
+}
+
+.subcategory-button:hover {
+    background-color: var(--lumo-contrast-5pct);
+}
+
+.category-panel {
+    background: var(--lumo-contrast-5pct);
+    padding: 16px;
+    border-radius: 12px;
+}
+
+/* ===================================================
+   LÍNEA DE TIEMPO
+=================================================== */
+
+/* Estilos para la línea de tiempo */
+.clinical-timeline {
+    position: relative;
+    margin-left: 20px;
+    padding-left: 10px;
+    border-left: 2px solid var(--lumo-contrast-10pct);
+}
+
+/* Punto de la línea de tiempo */
+.timeline-point {
+    width: 12px;
+    height: 12px;
+    background-color: var(--lumo-primary-color);
+    border-radius: 50%;
+    margin-right: 10px;
+    margin-top: 6px;
+}
+
+/* Detalles del evento */
+.timeline-details {
+    background-color: var(--lumo-contrast-5pct);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 4px; /* Ajusta este valor según tus preferencias */
+}
+
+.timeline-date {
+    font-size: 0.9em;
+    color: var(--lumo-secondary-text-color);
+}
+
+.timeline-title {
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.timeline-description {
+    margin-top: 5px;
+}
+
+/* Clase para el ícono de estado en el timeline */
+.timeline-status-icon {
+    margin-right: 10px;
+    font-size: 24px; /* Tamaño adecuado */
+}
+
+/* ===================================================
+   ESTADOS CLÍNICOS
+=================================================== */
+
+/* Clases para los estados */
+/* Estado Urgente */
+.status-urgente {
+    background-color: #FFCDD2; /* Rojo claro */
+    border-left: 5px solid #F44336; /* Rojo oscuro */
+}
+
+.status-pendiente {
+    background-color: #FFF9C4; /* Amarillo claro */
+    border-left: 5px solid #FFEB3B; /* Amarillo oscuro */
+}
+
+.status-en-curso {
+    background-color: #C5CAE9; /* Azul claro */
+    border-left: 5px solid #3F51B5; /* Azul oscuro */
+}
+
+.status-completado {
+    background-color: #C8E6C9; /* Verde claro */
+    border-left: 5px solid #4CAF50; /* Verde oscuro */
+}
+
+/* Estado Desconocido */
+.status-unknown {
+    background-color: #E0E0E0; /* Gris claro */
+    border-left: 5px solid #9E9E9E; /* Gris oscuro */
+    color: #9E9E9E; /* Color de texto gris oscuro */
+}
+
+
+/* Clase para el contador de estado */
+.status-count {
+    font-size: 12px; /* Ajusta según necesidad */
+    color: #333; /* Color del texto del contador */
+    vertical-align: middle;
+    margin-right: 8px; /* Espacio entre contadores */
+}
+
+/* Clase para el contenedor de íconos de estado */
+.status-icons-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto; /* Empuja los íconos al final del contenedor */
+    overflow-x: auto; /* Permite el desplazamiento horizontal */
+    white-space: nowrap; /* Previene el wrap de íconos */
+    padding-right: 10px; /* Espacio adicional si es necesario */
+}
+
+/* Opcional: Personalizar la barra de desplazamiento */
+.status-icons-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.status-icons-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.status-icons-container::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos para el layout del filtro */
+.filter-layout {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    margin-left: 20px;
+  
+    margin-bottom: 14px;
+}
+
+/* Definir keyframes para el efecto de brillo pulsante */
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+}
+
+/* Estilo por defecto para el filtro de estado */
+.custom-status-filter {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    
+    border-radius: 4px; /* Esquinas redondeadas */
+    padding: 4px 8px; /* Espaciado interno */
+}
+
+/* Estilo cuando el filtro está activo (no es "Todos") */
+.custom-status-filter.filter-active {
+    border-color: #007bff; /* Azul */
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.7);
+    background-color: #d0e7ff; /* Fondo azul más intenso */
+    border-width: 2px; /* Aumentar el grosor del borde */
+    animation: pulse-glow 2s infinite; /* Añadir animación de brillo pulsante */
+}
