@@ -23,7 +23,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 
-import es.televoip.model.CategoryConfig;
+import es.televoip.model.entities.CategoryConfig;
 import es.televoip.model.entities.SubCategory;
 import es.televoip.service.CategoryManager;
 import es.televoip.util.I18nUtil;

@@ -1,8 +1,10 @@
 package es.televoip.views.clinica.listener;
 
-import es.televoip.model.entities.PatientData;
+/*
+import es.televoip.model.entities.ClientData;
 
 @FunctionalInterface
 public interface PatientSelectionListener {
-	void onPatientSelected(PatientData patient);
+	void onPatientSelected(ClientData patient);
 }
+*/

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 
-import es.televoip.model.CategoryConfig;
+import es.televoip.model.entities.CategoryConfig;
 import es.televoip.model.entities.SubCategory;
 import es.televoip.repository.CategoryRepository;
 import lombok.extern.slf4j.Slf4j;

@@ -1,11 +1,14 @@
 package es.televoip.model.entities;
 
+/*
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+@Entity
 @Data
 @Builder
 @AllArgsConstructor
@@ -30,3 +33,4 @@ public class ClinicaData {
    }
 	
 }
+*/
