@@ -10,6 +10,6 @@ import lombok.Data;
 public class PatientData {
 	private String phoneNumber;
 	private String name;
-	private List<ClinicalData> data;
+	private List<ClinicaData> data;
 	
 }
