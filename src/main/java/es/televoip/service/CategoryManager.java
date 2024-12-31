@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.vaadin.flow.component.icon.VaadinIcon;
 
 import es.televoip.model.CategoryConfig;
@@ -202,8 +204,9 @@ public class CategoryManager {
      * 
      * @return Lista de todas las categorías.
      */
+    @Transactional(readOnly = true)
     public List<CategoryConfig> getAllCategories() {
-        return categoryRepository.findAll().stream()
+        return categoryRepository.findAllWithSubCategories().stream()
             .sorted(Comparator.comparingInt(CategoryConfig::getDisplayOrder))
             .collect(Collectors.toList());
     }
@@ -247,6 +250,7 @@ public class CategoryManager {
      * 
      * @param updatedCategory La categoría con los nuevos datos.
      */
+    @Transactional(readOnly = true)
     public void updateCategory(CategoryConfig updatedCategory) {
         if (categoryRepository.existsById(updatedCategory.getId())) {
             categoryRepository.save(updatedCategory);
@@ -263,7 +267,7 @@ public class CategoryManager {
      * @return La categoría correspondiente o null si no se encuentra.
      */
     public Optional<CategoryConfig> getCategoryById(String categoryId) {
-        return categoryRepository.findById(categoryId);
+       return categoryRepository.findByIdWithSubCategories(categoryId);
     }
 
     /**
