@@ -25,12 +25,15 @@ import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+
+import es.televoip.views.clinica.ClinicaAdminView;
 import es.televoip.views.login.LoginView;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 /**
  * The main view is a top-level placeholder for other views.
  */
+//@Push
 @Layout
 @AnonymousAllowed
 public class MainLayout extends AppLayout {
@@ -139,7 +142,7 @@ public class MainLayout extends AppLayout {
         clinicSection.addItem(createNavItem("Pacientes", LineAwesomeIcon.USERS_SOLID, null));
         clinicSection.addItem(createNavItem("Calendario", LineAwesomeIcon.CALENDAR_ALT_SOLID, null));
         //clinicSection.addItem(createNavItem("Datos Clínicos", LineAwesomeIcon.DATABASE_SOLID, ClinicaDatosView.class));
-        //clinicSection.addItem(createNavItem("Administración", LineAwesomeIcon.NOTES_MEDICAL_SOLID, ClinicAdminView.class));
+        clinicSection.addItem(createNavItem("Administración", LineAwesomeIcon.NOTES_MEDICAL_SOLID, ClinicaAdminView.class));
 
         // SECCIÓN: COMUNICACIONES
         SideNavItem communicationsSection = createSection(
