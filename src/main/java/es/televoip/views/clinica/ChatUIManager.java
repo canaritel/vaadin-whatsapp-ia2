@@ -35,15 +35,15 @@ import es.televoip.model.entities.CategoryConfig;
 import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 import es.televoip.model.enums.ClinicalStatus;
-import es.televoip.service.CategoryManager;
-import es.televoip.service.ChatDataManager;
+import es.televoip.service.CategoryService;
+import es.televoip.service.ChatDataService;
 import es.televoip.util.MyNotification;
 import es.televoip.util.StringUtils;
 
 @Component
 public class ChatUIManager {
-    private final ChatDataManager dataManager;
-    private final CategoryManager categoryManager; 
+    private final ChatDataService dataManager;
+    private final CategoryService categoryManager; 
 
     private PatientSelectionListener patientSelectionListener; // Listener
     private VerticalLayout patientListLayout; // Nuevo atributo
@@ -73,7 +73,7 @@ public class ChatUIManager {
         this.messageList = messageList;
     }
 
-    public ChatUIManager(ChatDataManager dataManager, CategoryManager categoryManager) {
+    public ChatUIManager(ChatDataService dataManager, CategoryService categoryManager) {
         this.dataManager = dataManager;
         this.categoryManager = categoryManager;
     }

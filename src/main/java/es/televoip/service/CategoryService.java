@@ -17,11 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class CategoryManager {
+public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     // @Autowired - No es necesario Autowired pero si se aplica
-    public CategoryManager(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
         initializeDefaultCategories();
     }

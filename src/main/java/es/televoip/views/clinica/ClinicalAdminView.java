@@ -25,22 +25,22 @@ import com.vaadin.flow.router.Route;
 
 import es.televoip.model.entities.CategoryConfig;
 import es.televoip.model.entities.SubCategory;
-import es.televoip.service.CategoryManager;
+import es.televoip.service.CategoryService;
 import es.televoip.util.I18nUtil;
 import es.televoip.util.MyNotification;
 import es.televoip.views.MainLayout;
 
 //@org.springframework.stereotype.Component
 @Route(value = "clinic-admin", layout = MainLayout.class) // Usa MainLayout como diseño principal
-public class ClinicaAdminView extends VerticalLayout { // No implementar Translatable
+public class ClinicalAdminView extends VerticalLayout { // No implementar Translatable
 
     private static final long serialVersionUID = 1L;
 
-    private final CategoryManager categoryManager;
+    private final CategoryService categoryManager;
     private final I18nUtil i18nUtil; // Inyectar I18nUtil
     private final Grid<CategoryConfig> categoriesGrid;
 
-    public ClinicaAdminView(CategoryManager categoryManager, I18nUtil i18nUtil) {
+    public ClinicalAdminView(CategoryService categoryManager, I18nUtil i18nUtil) {
         this.categoryManager = categoryManager;
         this.i18nUtil = i18nUtil;
         this.categoriesGrid = new Grid<>(CategoryConfig.class);

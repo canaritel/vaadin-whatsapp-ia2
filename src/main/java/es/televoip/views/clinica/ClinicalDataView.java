@@ -21,8 +21,8 @@ import com.vaadin.flow.router.Route;
 import es.televoip.model.entities.CategoryConfig;
 import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
-import es.televoip.service.CategoryManager;
-import es.televoip.service.ChatDataManager;
+import es.televoip.service.CategoryService;
+import es.televoip.service.ChatDataService;
 import es.televoip.util.I18nUtil;
 import es.televoip.util.LocaleChangeNotifier;
 import es.televoip.util.MyNotification;
@@ -31,11 +31,11 @@ import es.televoip.views.MainLayout;
 
 @Route(value = "clinica-datos", layout = MainLayout.class) // Usa MainLayout como diseño principal
 @PageTitle("Clínica Datos") // Este título se actualizará dinámicamente
-public class ClinicaDatosView extends HorizontalLayout implements Translatable {
+public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	private static final long serialVersionUID = 1L;
 
-	private final ChatDataManager dataManager;
-	private final CategoryManager categoryManager;
+	private final ChatDataService dataManager;
+	private final CategoryService categoryManager;
 	private ChatUIManager uiManager; // Ya no es final porque se inicializa después del patientList
 
 	// Componentes principales
@@ -49,7 +49,7 @@ public class ClinicaDatosView extends HorizontalLayout implements Translatable {
 	// Inyecta I18nUtil
 	private final I18nUtil i18nUtil;
 
-	public ClinicaDatosView(ChatDataManager dataManager, CategoryManager categoryManager, I18nUtil i18nUtil) {
+	public ClinicalDataView(ChatDataService dataManager, CategoryService categoryManager, I18nUtil i18nUtil) {
 		this.dataManager = dataManager;
 		this.categoryManager = categoryManager;
 		this.i18nUtil = i18nUtil;
