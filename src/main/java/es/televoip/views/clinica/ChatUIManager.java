@@ -31,7 +31,7 @@ import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
 import es.televoip.listener.PatientSelectionListener;
-import es.televoip.model.entities.CategoryConfig;
+import es.televoip.model.entities.Category;
 import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 import es.televoip.model.enums.ClinicalStatus;
@@ -240,7 +240,7 @@ public class ChatUIManager {
                   //CategoryConfig category = categoryManager.getCategoryById(cd.getCategory());
                   //return category != null ? category.getDisplayOrder() : Integer.MAX_VALUE;
             	  return categoryManager.getCategoryById(cd.getCategory())
-            			    .map(CategoryConfig::getDisplayOrder)
+            			    .map(Category::getDisplayOrder)
             			    .orElse(Integer.MAX_VALUE);
 
               })
@@ -251,10 +251,10 @@ public class ChatUIManager {
       System.out.println("=== Eventos Ordenados ===");
       filteredData.forEach(cd -> {
           String categoryName = categoryManager.getCategoryById(cd.getCategory())
-              .map(CategoryConfig::getName)
+              .map(Category::getName)
               .orElse("Unknown");
           int displayOrder = categoryManager.getCategoryById(cd.getCategory())
-              .map(CategoryConfig::getDisplayOrder)
+              .map(Category::getDisplayOrder)
               .orElse(Integer.MAX_VALUE);
           int statusPriority = getStatusPriority(cd.getStatus());
           String date = (cd.getDate() != null) ? cd.getDate().toLocalDate().toString() : "Fecha no disponible";
@@ -590,11 +590,11 @@ public class ChatUIManager {
        H3 addDialogTitle = new H3("Añadir Nuevo Dato Clínico para " + selectedPatient.getName());
 
        // Formulario de ingreso de datos
-       ComboBox<CategoryConfig> categoryCombo = new ComboBox<>("Categoría");
+       ComboBox<Category> categoryCombo = new ComboBox<>("Categoría");
 
        // Obtener categorías activas desde CategoryManager
-       List<CategoryConfig> activeCategories = categoryManager.getAllCategories().stream()
-           .filter(CategoryConfig::isActive)
+       List<Category> activeCategories = categoryManager.getAllCategories().stream()
+           .filter(Category::isActive)
            .collect(Collectors.toList());
 
        categoryCombo.setItems(activeCategories);
@@ -604,7 +604,7 @@ public class ChatUIManager {
        }
 
        // Configurar el generador de etiquetas para mostrar el nombre de la categoría
-       categoryCombo.setItemLabelGenerator(CategoryConfig::getName);
+       categoryCombo.setItemLabelGenerator(Category::getName);
 
        // Permitir cambiar la categoría
        categoryCombo.setEnabled(true); // Puedes deshabilitarlo si deseas fijar la categoría
@@ -641,7 +641,7 @@ public class ChatUIManager {
            }
 
            // Obtener la categoría seleccionada
-           CategoryConfig selectedCategory = categoryCombo.getValue();
+           Category selectedCategory = categoryCombo.getValue();
            if (selectedCategory == null) {
                showMessageWarning("Seleccione una categoría válida.");
                return;

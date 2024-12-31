@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 
-import es.televoip.model.entities.CategoryConfig;
+import es.televoip.model.entities.Category;
 import es.televoip.model.entities.SubCategory;
 import es.televoip.repository.CategoryRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -28,16 +28,16 @@ public class CategoryService {
 
     private void initializeDefaultCategories() {
         if (categoryRepository.count() == 0) {
-            List<CategoryConfig> defaultCategories = initializeDefaultCategoriesList();
+            List<Category> defaultCategories = initializeDefaultCategoriesList();
             categoryRepository.saveAll(defaultCategories);
             log.info("Categorías predeterminadas inicializadas.");
         }
     }
 
-    private List<CategoryConfig> initializeDefaultCategoriesList() {
+    private List<Category> initializeDefaultCategoriesList() {
         // Aquí debes crear y devolver la lista de categorías predeterminadas
         /// 1. Citas y Agenda
-   	 CategoryConfig appointments = CategoryConfig.builder()
+   	 Category appointments = Category.builder()
              .id("appointments")
              .name("Citas")
              .icon(VaadinIcon.CALENDAR.name())
@@ -69,7 +69,7 @@ public class CategoryService {
              .build();
 
          // 2. Tratamientos
-         CategoryConfig treatments = CategoryConfig.builder()
+         Category treatments = Category.builder()
              .id("treatments")
              .name("Tratamientos")
              .icon(VaadinIcon.DOCTOR.name())
@@ -101,7 +101,7 @@ public class CategoryService {
              .build();
 
          // 3. Pagos
-         CategoryConfig payments = CategoryConfig.builder()
+         Category payments = Category.builder()
              .id("payments")
              .name("Pagos")
              .icon(VaadinIcon.EURO.name())
@@ -133,7 +133,7 @@ public class CategoryService {
              .build();
          
          // 4. Documentos
-         CategoryConfig documents = CategoryConfig.builder()
+         Category documents = Category.builder()
              .id("documents")
              .name("Documentos")
              .icon(VaadinIcon.FILE_TEXT.name())
@@ -165,7 +165,7 @@ public class CategoryService {
              .build();
          
          // 5. Comunicaciones
-         CategoryConfig communications = CategoryConfig.builder()
+         Category communications = Category.builder()
              .id("communications")
              .name("Comunicaciones")
              .icon(VaadinIcon.COMMENT.name())
@@ -205,9 +205,9 @@ public class CategoryService {
      * @return Lista de todas las categorías.
      */
     @Transactional(readOnly = true)
-    public List<CategoryConfig> getAllCategories() {
+    public List<Category> getAllCategories() {
         return categoryRepository.findAllWithSubCategories().stream()
-            .sorted(Comparator.comparingInt(CategoryConfig::getDisplayOrder))
+            .sorted(Comparator.comparingInt(Category::getDisplayOrder))
             .collect(Collectors.toList());
     }
 
@@ -216,9 +216,9 @@ public class CategoryService {
      *
      * @return Lista de categorías activas.
      */
-    public List<CategoryConfig> getActiveCategories() {
+    public List<Category> getActiveCategories() {
         return getAllCategories().stream()
-            .filter(CategoryConfig::isActive)
+            .filter(Category::isActive)
             .collect(Collectors.toList());
     }
     
@@ -227,7 +227,7 @@ public class CategoryService {
      * 
      * @param category La categoría a añadir.
      */
-    public void addCategory(CategoryConfig category) {
+    public void addCategory(Category category) {
         if (categoryRepository.existsById(category.getId())) {
             log.warn("La categoría con ID '{}' ya existe. Use 'updateCategory' para actualizarla.", category.getId());
             return;
@@ -262,7 +262,7 @@ public class CategoryService {
      * @param updatedCategory La categoría con los nuevos datos.
      */
     @Transactional(readOnly = true)
-    public void updateCategory(CategoryConfig updatedCategory) {
+    public void updateCategory(Category updatedCategory) {
         if (categoryRepository.existsById(updatedCategory.getId())) {
             categoryRepository.save(updatedCategory);
             log.info("Categoría actualizada: {}", updatedCategory.getName());
@@ -277,7 +277,7 @@ public class CategoryService {
      * @param categoryId ID de la categoría.
      * @return La categoría correspondiente o null si no se encuentra.
      */
-    public Optional<CategoryConfig> getCategoryById(String categoryId) {
+    public Optional<Category> getCategoryById(String categoryId) {
        return categoryRepository.findByIdWithSubCategories(categoryId);
     }
 
@@ -288,15 +288,15 @@ public class CategoryService {
      * @param moveUp     Si es true, mueve la categoría hacia arriba; si es false, hacia abajo.
      */
     public void moveCategory(String categoryId, boolean moveUp) {
-        List<CategoryConfig> categories = getAllCategories();
-        Optional<CategoryConfig> optionalCategory = categoryRepository.findById(categoryId);
+        List<Category> categories = getAllCategories();
+        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
 
         if (optionalCategory.isEmpty()) {
             log.warn("Categoría no encontrada: {}", categoryId);
             return;
         }
 
-        CategoryConfig categoryToMove = optionalCategory.get();
+        Category categoryToMove = optionalCategory.get();
         int currentOrder = categoryToMove.getDisplayOrder();
         int newOrder = moveUp ? currentOrder - 1 : currentOrder + 1;
 
@@ -307,12 +307,12 @@ public class CategoryService {
         }
 
         // Encontrar la categoría con la que intercambiar
-        Optional<CategoryConfig> optionalCategoryToSwap = categories.stream()
+        Optional<Category> optionalCategoryToSwap = categories.stream()
             .filter(c -> c.getDisplayOrder() == newOrder)
             .findFirst();
 
         if (optionalCategoryToSwap.isPresent()) {
-            CategoryConfig categoryToSwap = optionalCategoryToSwap.get();
+            Category categoryToSwap = optionalCategoryToSwap.get();
 
             // Intercambiar órdenes
             categoryToMove.setDisplayOrder(newOrder);
@@ -333,9 +333,9 @@ public class CategoryService {
      * Reordena todas las categorías según el displayOrder.
      */
     public void reorderCategories() {
-        List<CategoryConfig> orderedCategories = getAllCategories();
+        List<Category> orderedCategories = getAllCategories();
         int order = 1;
-        for (CategoryConfig category : orderedCategories) {
+        for (Category category : orderedCategories) {
             category.setDisplayOrder(order++);
             categoryRepository.save(category);
         }

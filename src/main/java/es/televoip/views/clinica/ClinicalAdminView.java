@@ -23,7 +23,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 
-import es.televoip.model.entities.CategoryConfig;
+import es.televoip.model.entities.Category;
 import es.televoip.model.entities.SubCategory;
 import es.televoip.service.CategoryService;
 import es.televoip.util.I18nUtil;
@@ -38,12 +38,12 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
 
     private final CategoryService categoryManager;
     private final I18nUtil i18nUtil; // Inyectar I18nUtil
-    private final Grid<CategoryConfig> categoriesGrid;
+    private final Grid<Category> categoriesGrid;
 
     public ClinicalAdminView(CategoryService categoryManager, I18nUtil i18nUtil) {
         this.categoryManager = categoryManager;
         this.i18nUtil = i18nUtil;
-        this.categoriesGrid = new Grid<>(CategoryConfig.class);
+        this.categoriesGrid = new Grid<>(Category.class);
 
         // Hacer que el layout principal ocupe toda la pantalla
         setSizeFull();
@@ -79,7 +79,7 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
         categoriesGrid.removeAllColumns();
 
         // Columna de categoría
-        categoriesGrid.addColumn(CategoryConfig::getName)
+        categoriesGrid.addColumn(Category::getName)
             .setHeader(i18nUtil.get("field.name.label"))
             .setWidth("200px")
             .setFlexGrow(1);
@@ -96,7 +96,7 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
         .setFlexGrow(0);
 
         // Columna de orden
-        categoriesGrid.addColumn(CategoryConfig::getDisplayOrder)
+        categoriesGrid.addColumn(Category::getDisplayOrder)
             .setHeader(i18nUtil.get("field.order.label"))
             .setWidth("90px")
             .setFlexGrow(0);
@@ -147,7 +147,7 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
                 return;
             }
 
-            CategoryConfig newCategory = CategoryConfig.builder()
+            Category newCategory = Category.builder()
                 .id(UUID.randomUUID().toString()) // Usar UUID para IDs únicos
                 .name(nameField.getValue().trim())
                 .isActive(activeField.getValue())
@@ -180,7 +180,7 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
         dialog.open();
     }
 
-    private void confirmDelete(CategoryConfig category) {
+    private void confirmDelete(Category category) {
         // Validaciones previas
         if (category.getDisplayOrder() == 1) {
             MyNotification.showWarning(
@@ -240,7 +240,7 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
         dialog.open();
     }
 
-    private Component createOrderButtons(CategoryConfig category) {
+    private Component createOrderButtons(Category category) {
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing(true);
         buttonLayout.setPadding(false);
@@ -255,7 +255,7 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
         downButton.addClickListener(e -> moveCategory(category, false));
 
         // Deshabilitar botones en los límites
-        List<CategoryConfig> allCategories = categoryManager.getAllCategories();
+        List<Category> allCategories = categoryManager.getAllCategories();
         upButton.setEnabled(category.getDisplayOrder() > 1);
         downButton.setEnabled(category.getDisplayOrder() < allCategories.size());
 
@@ -263,14 +263,14 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
         return buttonLayout;
     }
 
-    private void moveCategory(CategoryConfig category, boolean moveUp) {
+    private void moveCategory(Category category, boolean moveUp) {
         categoryManager.moveCategory(category.getId(), moveUp);
         refreshGrid();
     }
 
-    private void openCategoryEditor(CategoryConfig category) {
+    private void openCategoryEditor(Category category) {
         // Crear una copia temporal de la categoría original
-        CategoryConfig tempCategory = category.toBuilder()
+        Category tempCategory = category.toBuilder()
             .subCategories(new ArrayList<>(category.getSubCategories()))
             .build();
 
@@ -398,7 +398,7 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
     }
 
     // Método para abrir el editor de subcategorías
-    private void openSubCategoryEditor(Dialog parentDialog, Grid<SubCategory> grid, CategoryConfig category, SubCategory subCategory) {
+    private void openSubCategoryEditor(Dialog parentDialog, Grid<SubCategory> grid, Category category, SubCategory subCategory) {
         boolean isEdit = subCategory != null;
 
         // Crear una copia temporal de la subcategoría si es edición

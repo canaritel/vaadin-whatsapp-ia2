@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true) // Habilitar toBuilder()
 @NoArgsConstructor // Constructor sin argumentos
 @AllArgsConstructor
-public class CategoryConfig {
+public class Category {
 
 	@Id
 	private String id;

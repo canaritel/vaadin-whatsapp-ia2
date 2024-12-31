@@ -8,15 +8,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import es.televoip.model.entities.CategoryConfig;
+import es.televoip.model.entities.Category;
 
 @Repository
-public interface CategoryRepository extends JpaRepository<CategoryConfig, String> {
+public interface CategoryRepository extends JpaRepository<Category, String> {
 
-	@Query("SELECT c FROM CategoryConfig c LEFT JOIN FETCH c.subCategories")
-	List<CategoryConfig> findAllWithSubCategories();
+	@Query("SELECT c FROM Category c LEFT JOIN FETCH c.subCategories")
+	List<Category> findAllWithSubCategories();
 
-	@Query("SELECT c FROM CategoryConfig c LEFT JOIN FETCH c.subCategories WHERE c.id = :id")
-	Optional<CategoryConfig> findByIdWithSubCategories(@Param("id") String id);
+	@Query("SELECT c FROM Category c LEFT JOIN FETCH c.subCategories WHERE c.id = :id")
+	Optional<Category> findByIdWithSubCategories(@Param("id") String id);
 
 }

@@ -18,7 +18,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-import es.televoip.model.entities.CategoryConfig;
+import es.televoip.model.entities.Category;
 import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 import es.televoip.service.CategoryService;
@@ -167,7 +167,7 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 		header.getStyle().set("white-space", "nowrap");
 
 		// Obtener las categorías activas desde CategoryManager
-		List<CategoryConfig> activeCategories = categoryManager.getActiveCategories();
+		List<Category> activeCategories = categoryManager.getActiveCategories();
 
 		// **Añadir el botón "Todos" al principio**
 		Button allCategoryBtn = new Button(i18nUtil.get("category.all.name"), new Icon(VaadinIcon.LIST));
