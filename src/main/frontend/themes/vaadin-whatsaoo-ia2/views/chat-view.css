@@ -1,0 +1,330 @@
+/* ******************************************************************************************************************************************* */
+/* Estilos para hacer el panel lateral redimensionable */
+.chat-view {
+    display: flex;
+    height: 100%;  /* Asegura que la vista ocupe toda la altura disponible del contenedor */
+}
+
+/* Estilos generales del SplitLayout */
+.chat-view vaadin-split-layout {
+    width: 100%;
+    height: 100%;  /* Asegura que el SplitLayout ocupe toda la altura y anchura */
+}
+
+.chat-view vaadin-split-layout::part(splitter) {
+    min-width: 6px;  /* Define el ancho mínimo del divisor */
+    background-color: var(--lumo-contrast-10pct);  /* Color de fondo del divisor */
+    cursor: col-resize;  /* Cambia el cursor a una flecha de redimensionamiento horizontal */
+}
+
+.chat-view .grid-wrapper {
+    width: 100%;
+    height: 100%;  /* Asegura que el contenedor de la grilla ocupe toda la altura */
+    background-color: var(--lumo-contrast-1pct);  /* Color de fondo muy claro para la grilla */
+}
+
+.chat-view .grid-wrapper .aside {
+    width: 100%;
+    height: 100%;  /* Asegura que el contenedor lateral (aside) ocupe toda la altura */
+}
+
+/* Estilo para cuando no hay chat seleccionado */
+.chat-view vaadin-split-layout:not([has-selected-chat]) > [slot="primary"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--lumo-base-color);  /* Fondo de base cuando no hay chat seleccionado */
+}
+
+/* ******************************************************************************************************************************************* */
+/* Media Queries - Ajustes para pantallas pequeñas */
+@media screen and (max-width: 740px) {
+    /* Ajustes generales para la vista del chat */
+    .chat-view {
+        flex-direction: column-reverse;  /* Cambia la disposición para que el chat esté debajo de la lista de usuarios */
+    }
+
+    /* Ajustes específicos para el SplitLayout */
+    .chat-view vaadin-split-layout {
+        flex-direction: column;  /* Apilar los elementos en lugar de mostrarlos lado a lado */
+    }
+
+    .chat-view vaadin-split-layout::part(splitter) {
+        display: none;  /* Ocultar el divisor en pantallas pequeñas */
+    }
+
+    .chat-view .grid-wrapper {
+        width: 100%;  /* Asegura que la grilla ocupe todo el ancho en pantallas pequeñas */
+    }
+
+    .chat-view aside {
+        width: 100% !important;
+        flex-direction: row;
+    }
+
+    .chat-view aside header {
+        display: none;  /* Oculta el encabezado del aside en pantallas pequeñas */
+    }
+
+    .chat-view aside vaadin-tabs {
+        flex: 1 1 auto;
+        overflow: auto;
+    }
+
+    .chat-view aside vaadin-tabs vaadin-tab.justify-between {
+        justify-content: flex-start;
+    }
+
+    vaadin-message {
+        max-width: 85%;  /* Aumenta el ancho máximo de los mensajes en pantallas pequeñas */
+        min-width: 150px; /* Disminuye el ancho mínimo para adaptarse a pantallas más pequeñas */
+    }
+
+    /* Ajuste del botón flotante */
+    .scroll-to-bottom-button {
+        right: 20px;
+        transform: none;  /* Alinea el botón correctamente en pantallas pequeñas */
+    }
+}
+
+/* ******************************************************************************************************************************************* */
+/* Estilos generales para los mensajes */
+vaadin-message-list {
+    display: flex;
+    flex-direction: column;  /* Asegura que los mensajes se apilen verticalmente */
+}
+
+vaadin-message {
+    max-width: 70%;  /* Limita el ancho de los mensajes al 70% del contenedor */
+    margin-bottom: 10px;
+    border-radius: 10px;  /* Bordes redondeados */
+    padding: 8px 11px 5px; /* Aumentado el padding inferior para dar espacio a la hora */
+    position: relative;
+    width: fit-content;  /* Ajusta el ancho al contenido */
+    min-width: 200px;  /* Ancho mínimo para los mensajes */
+}
+
+/* Estilos para los mensajes del emisor (usuario actual, alineados a la derecha) */
+vaadin-message[theme~="chat-view-bubble-bot"] {
+    align-self: flex-end;  /* Alinea los mensajes a la derecha */
+    background-color: #DCF8C6;  /* Color de fondo verde claro */
+    color: #000;
+    margin-left: auto;
+    margin-right: 10px; /* Margen derecho para separar del borde */
+}
+
+/* Estilos para los mensajes del remitente (otro usuario, alineados a la izquierda) */
+vaadin-message[theme~="chat-view-bubble"] {
+    align-self: flex-start;  /* Alinea los mensajes a la izquierda */
+    background-color: #FCFCFC;  /* Fondo blanco para los mensajes */
+    color: #000;
+    margin-right: auto;
+    margin-left: 0px; /* Margen izquierdo para separar del borde */
+}
+
+/* Estilo para el nombre del remitente */
+vaadin-message::part(name) {
+    font-weight: bold;  /* Texto en negrita */
+    margin-bottom: 4px;  /* Espacio debajo del nombre */
+}
+
+/* Estilo para la hora del mensaje */
+vaadin-message::part(time) {
+    font-size: 0.75em;  /* Tamaño de fuente pequeño para la hora */
+    color: rgba(0, 0, 0, 0.45);  /* Color gris claro para la hora */
+    position: absolute;
+    bottom: 4px;
+    right: 7px; /* Ajustado para estar más cerca del borde derecho */
+    line-height: 1;
+    margin-left: 10px; /* Espacio entre el texto y la hora */
+}
+
+/* Estilo para el contenido del mensaje */
+vaadin-message::part(content) {
+    word-wrap: break-word;  /* Ajusta las palabras largas para que no se desborden */
+    padding-right: 65px; /* Espacio para la hora */
+    margin-bottom: 14px; /* Espacio para separar el contenido de la hora */
+}
+
+/* Estilo para el avatar */
+vaadin-message > vaadin-avatar {
+    border-radius: 50%;  /* Hace que el avatar sea circular */
+    box-shadow: 0 0 3px #B2B2B2;  /* Añade una sombra alrededor del avatar */
+}
+
+/* Animación para destacar un mensaje */
+vaadin-message-list vaadin-message[highlighted] {
+    animation: highlight 2s;
+}
+
+@keyframes highlight {
+    0% { background-color: yellow; }  /* Comienza con un fondo amarillo */
+    100% { background-color: transparent; }  /* Desvanece a transparente */
+}
+
+.highlighted {
+    animation: highlight-fade 2s;  /* Añade animación de desvanecimiento cuando está resaltado */
+}
+
+@keyframes highlight-fade {
+    0% { background-color: var(--lumo-primary-color-50pct); }
+    100% { background-color: transparent; }
+}
+
+/* ******************************************************************************************************************************************* */
+/* CSS para el botón flotante */
+.scroll-to-bottom-button {
+    position: absolute;
+    bottom: 70px;
+    right: 40px;
+    transform: translateX(50%);
+    border-radius: 50%;  /* Hace que el botón sea circular */
+    width: 40px;
+    height: 40px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);  /* Añade sombra para darle un efecto flotante */
+    background-color: var(--lumo-base-color);
+    color: var(--lumo-primary-text-color);
+    z-index: 100;  /* Asegura que el botón esté por encima de otros elementos */
+}
+
+.scroll-to-bottom-button:hover {
+    background-color: var(--lumo-primary-color-10pct);  /* Cambia el fondo al pasar el ratón */
+}
+
+/* ******************************************************************************************************************************************* */
+/* CSS para la barra de búsqueda */
+.chat-search-field {
+    transition: box-shadow 0.3s ease-in-out;  /* Añade una transición suave para el sombreado */
+}
+
+.chat-search-field.search-active {
+    animation: pulse 2s infinite;  /* Añade una animación de pulso para indicar que la búsqueda está activa */
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4);  /* Comienza con un pequeño resplandor */
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);  /* Expande el resplandor y lo difumina */
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);  /* Desaparece el resplandor */
+    }
+}
+
+.search-clear-button {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;  /* Hace que el botón desaparezca suavemente */
+}
+
+.chat-search-field:hover .search-clear-button,
+.chat-search-field.search-active .search-clear-button {
+    opacity: 1;  /* Hace que el botón de limpiar búsqueda sea visible cuando está activo */
+}
+
+.chat-search-field {
+    margin-top: var(--lumo-space-m);
+    margin-bottom: var(--lumo-space-m);
+    max-width: 250px;
+}
+
+.chat-search-field input {
+    background-color: var(--lumo-contrast-10pct);  /* Fondo gris claro para el input */
+    border-radius: var(--lumo-border-radius-m);  /* Bordes redondeados */
+}
+
+.chat-search-field:hover input {
+    background-color: var(--lumo-contrast-20pct);  /* Fondo más oscuro al pasar el ratón */
+}
+
+.chat-search-field vaadin-button {
+    color: var(--lumo-secondary-text-color);
+    transition: 0.3s color;
+}
+
+.chat-search-field vaadin-button:hover {
+    color: var(--lumo-primary-text-color);
+}
+
+/* ******************************************************************************************************************************************* */
+/* Contenedor para el input de chat */
+.chat-input-container {
+    width: 100%;
+    max-width: 93%; /* Asegura que no sobrepase el contenedor padre */
+    box-sizing: border-box; /* Incluye el padding y el border en el width total */
+}
+
+.chat-input-container vaadin-button {
+    flex-shrink: 0; /* Asegura que los botones no se encojan */
+}
+
+/* ******************************************************************************************************************************************* */
+/* Estilos específicos para el ChatTab */
+.chat-tab .navigation-button {
+    min-width: 15px;
+    width: 15px;
+    height: 15px;
+    padding: 0;
+    color: var(--lumo-primary-text-color);
+    background-color: var(--lumo-primary-color-10pct);
+    border-radius: 50%;
+    margin: 0 1px;
+}
+
+.chat-tab .navigation-button:hover {
+    background-color: var(--lumo-primary-color-50pct);
+}
+
+.chat-tab.search-mode .edit-button,
+.chat-tab.search-mode .delete-button,
+.chat-tab.search-mode .recover-button {
+    display: none;  /* Oculta los botones de edición, eliminación y recuperación en modo de búsqueda */
+}
+
+.chat-tab:not(.search-mode) .navigation-button {
+    display: none;  /* Oculta los botones de navegación si no está en modo de búsqueda */
+}
+
+/* ******************************************************************************************************************************************* */
+/* Estilos específicos para el componente Notas */
+.custom-note-area::part(input-field) {
+    background-color: var(--lumo-contrast-5pct);
+    color: var(--lumo-secundary-text-color);
+}
+
+/* ******************************************************************************************************************************************* */
+/* Estilos específicos para el componente Tags */
+.tag-component {
+    margin-top: 10px;
+}
+
+.tag-component vaadin-combo-box {
+    width: 100%;
+}
+
+.tag-component vaadin-button {
+    min-width: 0;
+    padding: 0;
+}
+
+/* ******************************************************************************************************************************************* */
+/* Estilos específicos para el componente de separación */
+.separator {
+    width: 100%;
+    background-color: var(--lumo-contrast-10pct);
+    height: 1px;
+    margin: 8px 0;
+}
+
+.aside-section h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: var(--lumo-font-size-l);
+}
+
+/* Ajustes para el área de notas y el componente de tags */
+.aside-section vaadin-text-area,
+.aside-section .tag-component {
+    margin-top: 8px;
+}

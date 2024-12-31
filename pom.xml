@@ -22,14 +22,19 @@
     </parent>
 
     <repositories>
-        <repository>
-            <id>Vaadin Directory</id>
-            <url>https://maven.vaadin.com/vaadin-addons</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+		<repository>
+			<id>Vaadin Directory</id>
+			<url>https://maven.vaadin.com/vaadin-addons</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<!-- Library for API WhatsApp -->
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 
     <dependencyManagement>
         <dependencies>
@@ -91,6 +96,19 @@
         </dependency>
         
         <!-- Implementaciones nuevas -->
+        <dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Library for API WhatsApp -->
+		<dependency>
+			<groupId>com.github.Bindambc</groupId>
+			<artifactId>whatsapp-business-java-api</artifactId>
+			<version>v0.6.1</version>
+		</dependency>
+		
         <dependency>
 		    <groupId>org.mapstruct</groupId>
 		    <artifactId>mapstruct</artifactId>

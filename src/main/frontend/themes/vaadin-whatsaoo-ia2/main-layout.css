@@ -6,6 +6,21 @@ vaadin-side-nav-item vaadin-icon {
   padding: 0;
 }
 
+vaadin-side-nav-item {
+    transition: background-color 0.2s ease;
+}
+
+/* Opción 1: Usar un color más suave (10% de opacidad) */
+vaadin-side-nav-item[expanded] {
+    /*background: var(--lumo-primary-color-10pct);*/
+    /* background-color: rgba(0, 0, 0, 0.03) !important; */
+}
+
+vaadin-side-nav-item:hover {
+    background: var(--lumo-contrast-5pct);
+}
+
+
 [slot="drawer"]:is(header, footer) {
   display: flex;
   align-items: center;
@@ -18,3 +33,47 @@ vaadin-side-nav-item vaadin-icon {
 [slot="drawer"]:is(header, footer):is(:empty) {
   display: none;
 }
+
+.selected {
+    background-color: yellow;
+    /* Otros estilos de resaltado */
+}
+
+/* Estilos para la navegación */
+.app-nav-scroller {
+    border-right: 1px solid var(--lumo-contrast-10pct);
+    flex: 1;
+    padding: var(--lumo-space-s);
+}
+
+/* Header del drawer */
+.app-nav-header {
+    background: var(--lumo-primary-color-10pct);
+    border-radius: var(--lumo-border-radius);
+    margin-bottom: var(--lumo-space-m);
+    padding: var(--lumo-space-m);
+}
+
+/* Footer del drawer */
+.app-nav-footer {
+    background: var(--lumo-contrast-5pct);
+    padding: var(--lumo-space-s);
+    border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* Elementos de navegación */
+.menu-section {
+    margin-top: var(--lumo-space-s);
+    font-weight: 600;
+}
+
+/* Estilos para el usuario en el footer */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+    padding: var(--lumo-space-s);
+    color: var(--lumo-secondary-text-color);
+}
+
+
