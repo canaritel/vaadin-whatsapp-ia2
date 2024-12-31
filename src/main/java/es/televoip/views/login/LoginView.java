@@ -12,7 +12,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.VaadinSession;
 import es.televoip.views.MainLayout;
-import es.televoip.views.clinica.ClinicAdminView;
+import es.televoip.views.clinica.ClinicaAdminView;
 
 @Route(value = "login", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
@@ -46,7 +46,7 @@ public class LoginView extends VerticalLayout {
 			Notification.show("Introduzca un NickName");
 		} else {
 			VaadinSession.getCurrent().setAttribute("nickname", nickname);
-			UI.getCurrent().navigate(ClinicAdminView.class);
+			UI.getCurrent().navigate(ClinicaAdminView.class);
 		}
 	}
 

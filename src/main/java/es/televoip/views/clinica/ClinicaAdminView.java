@@ -32,7 +32,7 @@ import es.televoip.views.MainLayout;
 
 //@org.springframework.stereotype.Component
 @Route(value = "clinic-admin", layout = MainLayout.class) // Usa MainLayout como diseño principal
-public class ClinicAdminView extends VerticalLayout { // No implementar Translatable
+public class ClinicaAdminView extends VerticalLayout { // No implementar Translatable
 
     private static final long serialVersionUID = 1L;
 
@@ -40,7 +40,7 @@ public class ClinicAdminView extends VerticalLayout { // No implementar Translat
     private final I18nUtil i18nUtil; // Inyectar I18nUtil
     private final Grid<CategoryConfig> categoriesGrid;
 
-    public ClinicAdminView(CategoryManager categoryManager, I18nUtil i18nUtil) {
+    public ClinicaAdminView(CategoryManager categoryManager, I18nUtil i18nUtil) {
         this.categoryManager = categoryManager;
         this.i18nUtil = i18nUtil;
         this.categoriesGrid = new Grid<>(CategoryConfig.class);
