@@ -24,7 +24,8 @@ import java.util.List;
 @AnonymousAllowed
 public class MainLayout extends AppLayout {
 
-    private H1 viewTitle;
+    private static final long serialVersionUID = 1L;
+	private H1 viewTitle;
 
     public MainLayout() {
         setPrimarySection(Section.DRAWER);
