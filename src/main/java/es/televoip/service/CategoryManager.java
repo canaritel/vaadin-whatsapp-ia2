@@ -212,6 +212,17 @@ public class CategoryManager {
     }
 
     /**
+     * Obtiene todas las categorías que están activas.
+     *
+     * @return Lista de categorías activas.
+     */
+    public List<CategoryConfig> getActiveCategories() {
+        return getAllCategories().stream()
+            .filter(CategoryConfig::isActive)
+            .collect(Collectors.toList());
+    }
+    
+    /**
      * Añade una nueva categoría.
      * 
      * @param category La categoría a añadir.

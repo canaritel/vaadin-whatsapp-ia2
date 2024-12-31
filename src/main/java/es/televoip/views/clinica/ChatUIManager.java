@@ -237,8 +237,12 @@ public class ChatUIManager {
               .thenComparing(ClinicalData::getDate, Comparator.nullsLast(Comparator.reverseOrder()))
               // Finalmente, por displayOrder de la categoría (ascendente)
               .thenComparing(cd -> {
-                  CategoryConfig category = categoryManager.getCategoryById(cd.getCategory());
-                  return category != null ? category.getDisplayOrder() : Integer.MAX_VALUE;
+                  //CategoryConfig category = categoryManager.getCategoryById(cd.getCategory());
+                  //return category != null ? category.getDisplayOrder() : Integer.MAX_VALUE;
+            	  return categoryManager.getCategoryById(cd.getCategory())
+            			    .map(CategoryConfig::getDisplayOrder)
+            			    .orElse(Integer.MAX_VALUE);
+
               })
           )
           .collect(Collectors.toList());
@@ -246,9 +250,12 @@ public class ChatUIManager {
       // Log para verificar el ordenamiento
       System.out.println("=== Eventos Ordenados ===");
       filteredData.forEach(cd -> {
-          CategoryConfig category = categoryManager.getCategoryById(cd.getCategory());
-          String categoryName = category != null ? category.getName() : "Unknown";
-          int displayOrder = category != null ? category.getDisplayOrder() : Integer.MAX_VALUE;
+          String categoryName = categoryManager.getCategoryById(cd.getCategory())
+              .map(CategoryConfig::getName)
+              .orElse("Unknown");
+          int displayOrder = categoryManager.getCategoryById(cd.getCategory())
+              .map(CategoryConfig::getDisplayOrder)
+              .orElse(Integer.MAX_VALUE);
           int statusPriority = getStatusPriority(cd.getStatus());
           String date = (cd.getDate() != null) ? cd.getDate().toLocalDate().toString() : "Fecha no disponible";
           System.out.println("Categoría: " + categoryName +
@@ -586,7 +593,9 @@ public class ChatUIManager {
        ComboBox<CategoryConfig> categoryCombo = new ComboBox<>("Categoría");
 
        // Obtener categorías activas desde CategoryManager
-       List<CategoryConfig> activeCategories = categoryManager.getActiveCategories();
+       List<CategoryConfig> activeCategories = categoryManager.getAllCategories().stream()
+           .filter(CategoryConfig::isActive)
+           .collect(Collectors.toList());
 
        categoryCombo.setItems(activeCategories);
 
@@ -625,50 +634,50 @@ public class ChatUIManager {
 
        // Botones de acción
        Button addButton = new Button("Añadir", event -> {
-          // Validaciones básicas
-          if (titleField.isEmpty() || descriptionArea.isEmpty() || datePicker.isEmpty() || statusCombo.isEmpty()) {
-              showMessageWarning("Todos los campos son obligatorios.");
-              return;
-          }
+           // Validaciones básicas
+           if (titleField.isEmpty() || descriptionArea.isEmpty() || datePicker.isEmpty() || statusCombo.isEmpty()) {
+               showMessageWarning("Todos los campos son obligatorios.");
+               return;
+           }
 
-          // Obtener la categoría seleccionada
-          CategoryConfig selectedCategory = categoryCombo.getValue();
-          if (selectedCategory == null) {
-              showMessageWarning("Seleccione una categoría válida.");
-              return;
-          }
+           // Obtener la categoría seleccionada
+           CategoryConfig selectedCategory = categoryCombo.getValue();
+           if (selectedCategory == null) {
+               showMessageWarning("Seleccione una categoría válida.");
+               return;
+           }
 
-          // Obtener el estado seleccionado del enum
-          ClinicalStatus selectedStatus = statusCombo.getValue();
+           // Obtener el estado seleccionado del enum
+           ClinicalStatus selectedStatus = statusCombo.getValue();
 
-          // Crear el nuevo dato clínico usando el ID interno de la categoría y el estado del enum
-          ClinicalData newData = ClinicalData.builder()
-                .category(selectedCategory.getId()) // Usar ID interno
-                .title(titleField.getValue())
-                .description(descriptionArea.getValue())
-                .status(selectedStatus.getDisplayName())
-                .date(datePicker.getValue().atStartOfDay())
-                .build();
+           // Crear el nuevo dato clínico usando el ID interno de la categoría y el estado del enum
+           ClinicalData newData = ClinicalData.builder()
+               .category(selectedCategory.getId()) // Usar ID interno
+               .title(titleField.getValue())
+               .description(descriptionArea.getValue())
+               .status(selectedStatus.getDisplayName())
+               .date(datePicker.getValue().atStartOfDay())
+               .build();
 
-          // Añadir el nuevo dato clínico al dataManager
-          dataManager.addClinicalData(selectedPatient.getPhoneNumber(), newData);
+           // Añadir el nuevo dato clínico al dataManager
+           dataManager.addClinicalData(selectedPatient.getPhoneNumber(), newData);
 
-          // Refrescar los datos clínicos en la línea de tiempo usando la categoría actual
-          if (messageList != null && currentCategoryId != null) { // Verificar que currentCategoryId esté definido
-              List<ClinicalData> updatedData;
-              if ("all".equals(currentCategoryId)) {
-                  updatedData = dataManager.getAllClinicalData(selectedPatient.getPhoneNumber());
-              } else {
-                  updatedData = dataManager.getClinicalData(selectedPatient.getPhoneNumber(), currentCategoryId);
-              }
-              displayClinicalData(messageList, updatedData, currentCategoryId); // Pasar categoryId
-          }
+           // Refrescar los datos clínicos en la línea de tiempo usando la categoría actual
+           if (messageList != null && currentCategoryId != null) { // Verificar que currentCategoryId esté definido
+               List<ClinicalData> updatedData;
+               if ("all".equals(currentCategoryId)) {
+                   updatedData = dataManager.getAllClinicalData(selectedPatient.getPhoneNumber());
+               } else {
+                   updatedData = dataManager.getClinicalData(selectedPatient.getPhoneNumber(), currentCategoryId);
+               }
+               displayClinicalData(messageList, updatedData, currentCategoryId); // Pasar categoryId
+           }
 
-          // Actualizar la lista de pacientes para reflejar los nuevos conteos de estados
-          refreshPatientItem(selectedPatient);
+           // Actualizar la lista de pacientes para reflejar los nuevos conteos de estados
+           refreshPatientItem(selectedPatient);
 
-          showMessage("Nuevo dato clínico añadido exitosamente.");
-          addDialog.close();
+           showMessage("Nuevo dato clínico añadido exitosamente.");
+           addDialog.close();
        });
 
        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
