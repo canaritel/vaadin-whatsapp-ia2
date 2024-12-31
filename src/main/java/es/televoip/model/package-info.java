@@ -1,4 +1,4 @@
 @NonNullApi
-package es.televoip.data;
+package es.televoip.model;
 
 import org.springframework.lang.NonNullApi;
