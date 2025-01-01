@@ -372,10 +372,18 @@
 
 /* Icono de estado */
 .timeline-status-icon {
+	display: flex; /* Utiliza Flexbox para alinear icono y texto */
+    align-items: center; /* Alineación vertical centrada */
+    gap: 6px; /* Espacio entre icono y texto */
     flex-shrink: 0;
     margin-left: 8px;
     margin-right: 2px;
-    font-size: 24px;
+    min-width: 130px;
+    font-size: 18px; /* Tamaño de fuente del texto */
+    color: inherit; /* Hereda el color del padre */
+    padding: 4px 4px; /* Espaciado interno para mejor apariencia */
+    border-radius: 4px; /* Esquinas redondeadas */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Transiciones suaves */
 }
 
 /* Detalles del evento */
@@ -445,6 +453,7 @@
     color: #333; /* Color del texto del contador */
     vertical-align: middle;
     margin-right: 6px; /* Espacio entre contadores */
+    margin-left: 2px; /* espacio entre icono y contador numérico */
 }
 
 /* Clase para el contenedor de íconos de estado */

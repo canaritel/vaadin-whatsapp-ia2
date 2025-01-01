@@ -250,96 +250,90 @@ public class ClinicalUIService {
           emptyMessage.addClassName("empty-message");
           timeline.add(emptyMessage);
       } else {
-          filteredData.forEach(item -> {
-              // Crear un contenedor para cada evento
-              HorizontalLayout eventLayout = new HorizontalLayout();
-              eventLayout.setWidthFull();
-              eventLayout.setSpacing(false);
-              eventLayout.setPadding(false);
-              eventLayout.setAlignItems(Alignment.START);
-              eventLayout.addClassName("timeline-event");
+      	filteredData.forEach(item -> {
+      	    // Crear un contenedor para cada evento
+      	    HorizontalLayout eventLayout = new HorizontalLayout();
+      	    eventLayout.setWidthFull(); // Asegura que ocupa todo el ancho disponible
+      	    eventLayout.setSpacing(false);
+      	    eventLayout.setPadding(false);
+      	    eventLayout.setAlignItems(Alignment.START);
+      	    eventLayout.addClassName("timeline-event");
 
-              // Asignar clase CSS según el estado
-              switch (item.getStatus()) {
-                  case "Urgente":
-                      eventLayout.addClassName("status-urgente");
-                      break;
-                  case "Pendiente":
-                      eventLayout.addClassName("status-pendiente");
-                      break;
-                  case "En curso":
-                      eventLayout.addClassName("status-en-curso");
-                      break;
-                  case "Completado":
-                      eventLayout.addClassName("status-completado");
-                      break;
-                  default:
-                      eventLayout.addClassName("status-unknown");
-                      break;
-              }
+      	    // Asignar clase CSS según el estado
+      	    switch (item.getStatus()) {
+      	        case "Urgente":
+      	            eventLayout.addClassName("status-urgente");
+      	            break;
+      	        case "Pendiente":
+      	            eventLayout.addClassName("status-pendiente");
+      	            break;
+      	        case "En curso":
+      	            eventLayout.addClassName("status-en-curso");
+      	            break;
+      	        case "Completado":
+      	            eventLayout.addClassName("status-completado");
+      	            break;
+      	        default:
+      	            eventLayout.addClassName("status-unknown");
+      	            break;
+      	    }
 
-              // Punto de la línea de tiempo (icono de estado)
-              Span statusIcon = createStatusIcon(item.getStatus());
-              statusIcon.addClassName("timeline-status-icon");
+      	    // Punto de la línea de tiempo (icono de estado + texto)
+      	    Span statusIcon = createStatusIconWithText(item.getStatus());
+      	    statusIcon.addClassName("timeline-status-icon");
 
-              // Detalles del evento
-              VerticalLayout eventDetails = new VerticalLayout();
-              eventDetails.setPadding(true);
-              eventDetails.setSpacing(false);
-              eventDetails.addClassName("timeline-details");
+      	    // Detalles del evento
+      	    VerticalLayout eventDetails = new VerticalLayout();
+      	    eventDetails.setPadding(true);
+      	    eventDetails.setSpacing(false);
+      	    eventDetails.addClassName("timeline-details");
 
-              // Manejar 'null' en la fecha
-              String dateText = (item.getDate() != null) ? item.getDate().toLocalDate().toString() : "Fecha no disponible";
-              Span date = new Span(dateText);
-              date.addClassName("timeline-date");
+      	    // Manejar 'null' en la fecha
+      	    String dateText = (item.getDate() != null) ? item.getDate().toLocalDate().toString() : "Fecha no disponible";
+      	    Span date = new Span(dateText);
+      	    date.addClassName("timeline-date");
 
-              Span title = new Span(item.getTitle());
-              title.addClassName("timeline-title");
+      	    Span title = new Span(item.getTitle());
+      	    title.addClassName("timeline-title");
 
-              Span description = new Span(item.getDescription());
-              description.addClassName("timeline-description");
+      	    Span description = new Span(item.getDescription());
+      	    description.addClassName("timeline-description");
 
-              Button detailsButton = new Button("Ver detalles", new Icon(VaadinIcon.INFO_CIRCLE));
-              detailsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-              detailsButton.addClickListener(e -> openDetailsDialog(item));
+      	    Button detailsButton = new Button("Ver detalles", new Icon(VaadinIcon.INFO_CIRCLE));
+      	    detailsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+      	    detailsButton.addClickListener(e -> openDetailsDialog(item));
 
-              eventDetails.add(date, title, description, detailsButton);
+      	    eventDetails.add(date, title, description, detailsButton);
 
-              // Contenedor para la información de categoría (derecha)
-              Div categoryInfo = new Div();
-              categoryInfo.addClassName("timeline-category-info");
+      	    // Contenedor para la información de categoría (derecha)
+      	    Div categoryInfo = new Div();
+      	    categoryInfo.addClassName("timeline-category-info");
 
-              categoryManager.getCategoryById(item.getCategory()).ifPresent(category -> {
-                  try {
-                      // Crear contenedor para icono y nombre de categoría
-                      HorizontalLayout categoryContent = new HorizontalLayout();
-                      categoryContent.addClassName("timeline-category-content");
-                      categoryContent.setSpacing(true);
-                      categoryContent.setAlignItems(Alignment.CENTER);
+      	    categoryManager.getCategoryById(item.getCategory()).ifPresent(category -> {
+      	        try {
+      	            VaadinIcon vaadinIcon = VaadinIcon.valueOf(category.getIcon());
+      	            Icon icon = vaadinIcon.create();
+      	            icon.addClassName("timeline-category-icon");
 
-                      // Agregar icono
-                      VaadinIcon vaadinIcon = VaadinIcon.valueOf(category.getIcon());
-                      Icon icon = vaadinIcon.create();
-                      icon.addClassName("timeline-category-icon");
+      	            Span categoryName = new Span(category.getName());
+      	            categoryName.addClassName("timeline-category-name");
 
-                      // Agregar nombre
-                      Span categoryName = new Span(category.getName());
-                      categoryName.addClassName("timeline-category-name");
+      	            HorizontalLayout categoryContent = new HorizontalLayout(icon, categoryName);
+      	            categoryContent.addClassName("timeline-category-content");
 
-                      categoryContent.add(icon, categoryName);
-                      categoryInfo.add(categoryContent);
+      	            categoryInfo.add(categoryContent);
 
-                      // Agregar clase específica de la categoría
-                      String categoryClass = "category-" + category.getId().toLowerCase();
-                      eventLayout.addClassName(categoryClass);
-                  } catch (IllegalArgumentException e) {
-                      System.err.println("Icono inválido para categoría: " + category.getIcon());
-                  }
-              });
+      	            // Agregar clase específica de la categoría al layout del evento para el color de fondo
+      	            String categoryClass = "category-" + category.getId().toLowerCase();
+      	            eventLayout.addClassName(categoryClass);
+      	        } catch (IllegalArgumentException e) {
+      	            System.err.println("Icono inválido para categoría: " + category.getIcon());
+      	        }
+      	    });
 
-              eventLayout.add(statusIcon, eventDetails, categoryInfo);
-              timeline.add(eventLayout);
-          });
+      	    eventLayout.add(statusIcon, eventDetails, categoryInfo);
+      	    timeline.add(eventLayout);
+      	});
       }
 
       // Eliminar la línea de tiempo anterior si existe y añadir la nueva
@@ -356,54 +350,118 @@ public class ClinicalUIService {
     * @return Un Span que contiene el icono correspondiente.
     */
    private Span createStatusIcon(String status) {
-       ClinicalStatus clinicalStatus;
-       try {
-           clinicalStatus = ClinicalStatus.fromString(status);
-       } catch (IllegalArgumentException e) {
-           clinicalStatus = null;
-           System.err.println("Error al mapear el estado: " + status);
-       }
+      ClinicalStatus clinicalStatus;
+      try {
+          clinicalStatus = ClinicalStatus.fromString(status);
+      } catch (IllegalArgumentException e) {
+          clinicalStatus = null;
+          System.err.println("Error al mapear el estado: " + status);
+      }
 
-       Icon icon;
-       String tooltip;
+      Icon icon;
+      String tooltip;
 
-       if (clinicalStatus != null) {
-           switch (clinicalStatus) {
-               case URGENTE:
-                   icon = VaadinIcon.MEGAPHONE.create();
-                   tooltip = "Urgente";
-                   break;
-               case PENDIENTE:
-                   icon = VaadinIcon.CLOCK.create();
-                   tooltip = "Pendiente";
-                   break;
-               case EN_CURSO:
-                   icon = VaadinIcon.HOURGLASS.create();
-                   tooltip = "En curso";
-                   break;
-               case COMPLETADO:
-                   icon = VaadinIcon.CHECK_CIRCLE.create();
-                   tooltip = "Completado";
-                   break;
-               default:
-                   icon = VaadinIcon.QUESTION_CIRCLE.create();
-                   tooltip = "Desconocido";
-                   break;
-           }
-       } else {
-           icon = VaadinIcon.QUESTION_CIRCLE.create();
-           tooltip = "Desconocido";
-       }
+      if (clinicalStatus != null) {
+          switch (clinicalStatus) {
+              case URGENTE:
+                  icon = VaadinIcon.MEGAPHONE.create();
+                  tooltip = "Urgente";
+                  break;
+              case PENDIENTE:
+                  icon = VaadinIcon.CLOCK.create();
+                  tooltip = "Pendiente";
+                  break;
+              case EN_CURSO:
+                  icon = VaadinIcon.HOURGLASS.create();
+                  tooltip = "En curso";
+                  break;
+              case COMPLETADO:
+                  icon = VaadinIcon.CHECK_CIRCLE.create();
+                  tooltip = "Completado";
+                  break;
+              default:
+                  icon = VaadinIcon.QUESTION_CIRCLE.create();
+                  tooltip = "Desconocido";
+                  break;
+          }
+      } else {
+          icon = VaadinIcon.QUESTION_CIRCLE.create();
+          tooltip = "Desconocido";
+      }
 
-       Span iconContainer = new Span(icon);
-       iconContainer.addClassName("status-icon");
-       if (clinicalStatus != null) {
-           iconContainer.addClassName("status-" + clinicalStatus.name().toLowerCase());
-       } else {
-           iconContainer.addClassName("status-unknown");
-       }
-       iconContainer.getElement().setAttribute("title", tooltip);
-       return iconContainer;
+      Span iconContainer = new Span(icon);
+      iconContainer.addClassName("status-icon");
+      if (clinicalStatus != null) {
+          iconContainer.addClassName("status-" + clinicalStatus.name().toLowerCase());
+      } else {
+          iconContainer.addClassName("status-unknown");
+      }
+      iconContainer.getElement().setAttribute("title", tooltip);
+      return iconContainer;
+   }
+   
+   private Span createStatusIconWithText(String status) {
+      ClinicalStatus clinicalStatus;
+      try {
+          clinicalStatus = ClinicalStatus.fromString(status);
+      } catch (IllegalArgumentException e) {
+          clinicalStatus = null;
+          System.err.println("Error al mapear el estado: " + status);
+      }
+
+      Icon icon;
+      String tooltip;
+      String displayName;
+
+      if (clinicalStatus != null) {
+          switch (clinicalStatus) {
+              case URGENTE:
+                  icon = VaadinIcon.MEGAPHONE.create();
+                  tooltip = "Urgente";
+                  displayName = "Urgente";
+                  break;
+              case PENDIENTE:
+                  icon = VaadinIcon.CLOCK.create();
+                  tooltip = "Pendiente";
+                  displayName = "Pendiente";
+                  break;
+              case EN_CURSO:
+                  icon = VaadinIcon.HOURGLASS.create();
+                  tooltip = "En curso";
+                  displayName = "En curso";
+                  break;
+              case COMPLETADO:
+                  icon = VaadinIcon.CHECK_CIRCLE.create();
+                  tooltip = "Completado";
+                  displayName = "Completado";
+                  break;
+              default:
+                  icon = VaadinIcon.QUESTION_CIRCLE.create();
+                  tooltip = "Desconocido";
+                  displayName = "Desconocido";
+                  break;
+          }
+      } else {
+          icon = VaadinIcon.QUESTION_CIRCLE.create();
+          tooltip = "Desconocido";
+          displayName = "Desconocido";
+      }
+
+      // Crear el contenedor del icono y el texto
+      Span iconContainer = new Span(icon, new Span(displayName));
+      iconContainer.addClassName("status-icon-container");
+
+      // Añadir clases según el estado
+      if (clinicalStatus != null) {
+          iconContainer.addClassName("status-" + clinicalStatus.name().toLowerCase());
+      } else {
+          iconContainer.addClassName("status-unknown");
+      }
+
+      // Añadir tooltip al contenedor completo
+      iconContainer.getElement().setAttribute("title", tooltip);
+
+      return iconContainer;
    }
 
 
