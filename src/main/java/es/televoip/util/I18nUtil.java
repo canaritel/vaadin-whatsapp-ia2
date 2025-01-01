@@ -2,6 +2,7 @@ package es.televoip.util;
 
 import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import org.springframework.stereotype.Component;
 
@@ -28,13 +29,28 @@ public class I18nUtil {
         this.bundle = ResourceBundle.getBundle("messages", locale);
     }
 
+    /*
     public String get(String key) {
         return bundle.getString(key);
+    }
+    */
+
+    public String get(String key) {
+        try {
+            return bundle.getString(key);
+        } catch (MissingResourceException e) {
+            System.err.println("Missing resource key: {}. Using key as default." + key);
+            return key; // O puedes devolver un valor por defecto como "Desconocido"
+        }
     }
 
     public String getFormatted(String key, Object... params) {
         String pattern = get(key);
         return MessageFormat.format(pattern, params);
     }
+    
+    public boolean containsKey(String key) {
+       return bundle.containsKey(key);
+   }
     
 }

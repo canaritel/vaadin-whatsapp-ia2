@@ -261,7 +261,7 @@ public class CategoryService {
      * 
      * @param updatedCategory La categoría con los nuevos datos.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public void updateCategory(Category updatedCategory) {
         if (categoryRepository.existsById(updatedCategory.getId())) {
             categoryRepository.save(updatedCategory);

@@ -1,4 +1,4 @@
-package es.televoip.views.clinica;
+package es.televoip.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -6,8 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -35,14 +34,12 @@ import es.televoip.model.entities.Category;
 import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 import es.televoip.model.enums.ClinicalStatus;
-import es.televoip.service.CategoryService;
-import es.televoip.service.ChatDataService;
 import es.televoip.util.MyNotification;
 import es.televoip.util.StringUtils;
 
-@Component
-public class ChatUIManager {
-    private final ChatDataService dataManager;
+@Service
+public class ClinicalUIService {
+    private final PatientService dataManager;
     private final CategoryService categoryManager; 
 
     private PatientSelectionListener patientSelectionListener; // Listener
@@ -73,7 +70,7 @@ public class ChatUIManager {
         this.messageList = messageList;
     }
 
-    public ChatUIManager(ChatDataService dataManager, CategoryService categoryManager) {
+    public ClinicalUIService(PatientService dataManager, CategoryService categoryManager) {
         this.dataManager = dataManager;
         this.categoryManager = categoryManager;
     }

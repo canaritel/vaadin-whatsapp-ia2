@@ -1,13 +1,16 @@
 package es.televoip.views.clinica;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
@@ -137,6 +140,15 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
 
         // Formulario simplificado
         TextField nameField = new TextField(i18nUtil.get("field.name.label"));
+        //Checkbox activeField = new Checkbox(i18nUtil.get("field.active.label"));
+        //activeField.setValue(true);
+        
+        ComboBox<VaadinIcon> iconCombo = new ComboBox<>(i18nUtil.get("field.icon.label"));
+        iconCombo.setItems(VaadinIcon.values());
+        iconCombo.setItemLabelGenerator(icon -> convertEnumNameToDisplayName(icon.name()));
+        iconCombo.setRequired(true);
+        iconCombo.setValue(VaadinIcon.LIST); // Valor por defecto
+
         Checkbox activeField = new Checkbox(i18nUtil.get("field.active.label"));
         activeField.setValue(true);
 
@@ -178,6 +190,12 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
 
         dialog.add(layout, buttons);
         dialog.open();
+    }
+    
+    private String convertEnumNameToDisplayName(String enumName) {
+       return Arrays.stream(enumName.split("_"))
+                    .map(word -> word.substring(0, 1) + word.substring(1).toLowerCase())
+                    .collect(Collectors.joining(" "));
     }
 
     private void confirmDelete(Category category) {

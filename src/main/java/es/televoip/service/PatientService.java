@@ -10,10 +10,8 @@ import org.springframework.stereotype.Service;
 import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 
-//@Data
-//@Component
 @Service
-public class ChatDataService {
+public class PatientService {
     private Map<String, PatientData> patientsData = new HashMap<>();
     private PatientData currentUser;
 

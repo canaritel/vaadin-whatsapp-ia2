@@ -22,7 +22,8 @@ import es.televoip.model.entities.Category;
 import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 import es.televoip.service.CategoryService;
-import es.televoip.service.ChatDataService;
+import es.televoip.service.PatientService;
+import es.televoip.service.ClinicalUIService;
 import es.televoip.util.I18nUtil;
 import es.televoip.util.LocaleChangeNotifier;
 import es.televoip.util.MyNotification;
@@ -34,9 +35,9 @@ import es.televoip.views.MainLayout;
 public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	private static final long serialVersionUID = 1L;
 
-	private final ChatDataService dataManager;
+	private final PatientService dataManager;
 	private final CategoryService categoryManager;
-	private ChatUIManager uiManager; // Ya no es final porque se inicializa después del patientList
+	private ClinicalUIService uiManager; // Ya no es final porque se inicializa después del patientList
 
 	// Componentes principales
 	private VerticalLayout userListLayout;
@@ -49,7 +50,7 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	// Inyecta I18nUtil
 	private final I18nUtil i18nUtil;
 
-	public ClinicalDataView(ChatDataService dataManager, CategoryService categoryManager, I18nUtil i18nUtil) {
+	public ClinicalDataView(PatientService dataManager, CategoryService categoryManager, I18nUtil i18nUtil) {
 		this.dataManager = dataManager;
 		this.categoryManager = categoryManager;
 		this.i18nUtil = i18nUtil;
@@ -63,7 +64,7 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 		initializeComponents();
 
 		// Crear el ChatUIManager después de inicializar los componentes
-		this.uiManager = new ChatUIManager(dataManager, categoryManager);
+		this.uiManager = new ClinicalUIService(dataManager, categoryManager);
 
 		// Entonces configurar el uiManager
 		this.uiManager.setPatientListLayout(patientList);
@@ -152,97 +153,121 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	}
 
 	private HorizontalLayout createChatHeader() {
-		HorizontalLayout header = new HorizontalLayout();
-		header.addClassName("chat-header-datos");
-		header.setWidthFull(); // Ocupa todo el ancho disponible
-		header.setPadding(false);
-		header.setSpacing(false);
-		header.setDefaultVerticalComponentAlignment(Alignment.CENTER);
+	    HorizontalLayout header = new HorizontalLayout();
+	    header.addClassName("chat-header-datos");
+	    header.setWidthFull(); // Ocupa todo el ancho disponible
+	    header.setPadding(false);
+	    header.setSpacing(false);
+	    header.setDefaultVerticalComponentAlignment(Alignment.CENTER);
 
-		// Configurar Justify Content para estirar los botones y distribuir el espacio
-		header.setJustifyContentMode(JustifyContentMode.AROUND);
+	    // Configurar Justify Content para estirar los botones y distribuir el espacio
+	    header.setJustifyContentMode(JustifyContentMode.AROUND);
 
-		// Permitir scroll horizontal si es necesario
-		header.getStyle().set("overflow", "auto");
-		header.getStyle().set("white-space", "nowrap");
+	    // Permitir scroll horizontal si es necesario
+	    header.getStyle().set("overflow", "auto");
+	    header.getStyle().set("white-space", "nowrap");
 
-		// Obtener las categorías activas desde CategoryManager
-		List<Category> activeCategories = categoryManager.getActiveCategories();
+	    // Obtener las categorías activas desde CategoryManager
+	    List<Category> activeCategories = categoryManager.getActiveCategories();
 
-		// **Añadir el botón "Todos" al principio**
-		Button allCategoryBtn = new Button(i18nUtil.get("category.all.name"), new Icon(VaadinIcon.LIST));
-		allCategoryBtn.addClassName("category-button");
-		allCategoryBtn.setWidthFull(); // Cada botón ocupa todo el espacio disponible en su contenedor
-		header.setFlexGrow(1, allCategoryBtn);
+	    // **Añadir el botón "Todos" al principio**
+	    Button allCategoryBtn = new Button(i18nUtil.get("category.all.name"), new Icon(VaadinIcon.LIST));
+	    allCategoryBtn.addClassName("category-button");
+	    allCategoryBtn.setWidthFull(); // Cada botón ocupa todo el espacio disponible en su contenedor
+	    header.setFlexGrow(1, allCategoryBtn);
 
-		// Seleccionar "Todos" por defecto si no hay una categoría seleccionada
-		if (selectedCategoryId == null) {
-			allCategoryBtn.addClassName("category-button-selected");
-			selectedCategoryId = "all"; // Definir el ID para "Todos"
-			loadCategoryData("all");
-		}
+	    // Seleccionar "Todos" por defecto si no hay una categoría seleccionada
+	    if (selectedCategoryId == null) {
+	        allCategoryBtn.addClassName("category-button-selected");
+	        selectedCategoryId = "all"; // Definir el ID para "Todos"
+	        loadCategoryData("all");
+	    }
 
-		allCategoryBtn.addClickListener(e -> {
-			selectedCategoryId = "all"; // Usar ID "all" para "Todos"
-			header.getChildren()
-					.forEach(component -> component.getElement().getClassList().remove("category-button-selected"));
-			allCategoryBtn.addClassName("category-button-selected");
-			loadCategoryData("all"); // Pasar ID "all" al método
+	    allCategoryBtn.addClickListener(e -> {
+	        selectedCategoryId = "all"; // Usar ID "all" para "Todos"
+	        header.getChildren()
+	                .forEach(component -> component.getElement().getClassList().remove("category-button-selected"));
+	        allCategoryBtn.addClassName("category-button-selected");
+	        loadCategoryData("all"); // Pasar ID "all" al método
 
-			// **Refrescar la lista de pacientes para reflejar cambios en categorías**
-			refreshUserList();
-		});
+	        // **Refrescar la lista de pacientes para reflejar cambios en categorías**
+	        refreshUserList();
+	    });
 
-		header.add(allCategoryBtn); // Añadir "Todos" al header
+	    header.add(allCategoryBtn); // Añadir "Todos" al header
 
-		// Crear botones para las categorías activas
-		activeCategories.forEach(category -> {
-			// Convertir el nombre del icono en VaadinIcon
-			VaadinIcon vaadinIcon = getVaadinIconFromString(category.getIcon());
+	    // Crear botones para las categorías activas
+	    activeCategories.forEach(category -> {
+	        // Convertir el nombre del icono en VaadinIcon
+	        String iconName = category.getIcon();
 
-			// **Uso de Claves Específicas para Categorías**
-			// Se asume que en los archivos de propiedades tienes claves como "category.<id>.name"
-			Button categoryBtn = new Button(i18nUtil.get("category." + category.getId() + ".name"), // Obtener traducción
-					vaadinIcon != null ? vaadinIcon.create() : new Icon(VaadinIcon.QUESTION));
+	        // **Verificación adicional**
+	        if (iconName == null || iconName.trim().isEmpty()) {
+	            System.err.println("Categoría con ID '" + category.getId() + "' tiene un iconName nulo o vacío.");
+	            iconName = "QUESTION_CIRCLE"; // Asignar un icono por defecto
+	        }
 
-			categoryBtn.addClassName("category-button");
-			categoryBtn.setWidthFull(); // Cada botón ocupa todo el espacio disponible en su contenedor
+	        VaadinIcon vaadinIcon = getVaadinIconFromString(iconName);
+	        if (vaadinIcon == null) {
+	            vaadinIcon = VaadinIcon.QUESTION_CIRCLE; // Icono por defecto si no se encuentra el icono
+	        }
 
-			// Establecer el flex-grow a 1 para distribuir uniformemente el espacio
-			header.setFlexGrow(1, categoryBtn);
+	        // **Uso de Claves Específicas para Categorías**
+	        String displayName = getCategoryDisplayName(category);
 
-			if (category.getId().equals(selectedCategoryId)) { // Comparar ID
-				categoryBtn.addClassName("category-button-selected");
-			}
+	        Button categoryBtn = new Button(displayName,
+	                vaadinIcon != null ? vaadinIcon.create() : new Icon(VaadinIcon.QUESTION));
 
-			categoryBtn.addClickListener(e -> {
-				selectedCategoryId = category.getId(); // Usar ID
-				header.getChildren()
-						.forEach(component -> component.getElement().getClassList().remove("category-button-selected"));
-				categoryBtn.addClassName("category-button-selected");
-				loadCategoryData(category.getId()); // Pasar ID
+	        categoryBtn.addClassName("category-button");
+	        categoryBtn.setWidthFull(); // Cada botón ocupa todo el espacio disponible en su contenedor
 
-				// **Refrescar la lista de pacientes para reflejar cambios en categorías**
-				refreshUserList();
-			});
+	        // Establecer el flex-grow a 1 para distribuir uniformemente el espacio
+	        header.setFlexGrow(1, categoryBtn);
 
-			header.add(categoryBtn);
-		});
+	        if (category.getId().equals(selectedCategoryId)) { // Comparar ID
+	            categoryBtn.addClassName("category-button-selected");
+	        }
 
-		return header;
+	        categoryBtn.addClickListener(e -> {
+	            selectedCategoryId = category.getId(); // Usar ID
+	            header.getChildren()
+	                    .forEach(component -> component.getElement().getClassList().remove("category-button-selected"));
+	            categoryBtn.addClassName("category-button-selected");
+	            loadCategoryData(category.getId()); // Pasar ID
+
+	            // **Refrescar la lista de pacientes para reflejar cambios en categorías**
+	            refreshUserList();
+	        });
+
+	        header.add(categoryBtn);
+	    });
+
+	    return header;
 	}
 
 	/**
 	 * Método auxiliar para convertir un String en VaadinIcon. Retorna null si el icono no se encuentra.
 	 */
 	private VaadinIcon getVaadinIconFromString(String iconName) {
-		try {
-			return VaadinIcon.valueOf(iconName.toUpperCase());
-		} catch (IllegalArgumentException e) {
-			// Log o manejo de error si el icono no es válido
-			System.err.println("Icono no válido: " + iconName);
-			return null;
-		}
+	    if (iconName == null || iconName.trim().isEmpty()) {
+	        System.err.println("Icon name is null or empty. Using default icon.");
+	        return VaadinIcon.QUESTION_CIRCLE; // Icono por defecto
+	    }
+	    try {
+	        return VaadinIcon.valueOf(iconName.toUpperCase());
+	    } catch (IllegalArgumentException e) {
+	        System.err.println("Invalid icon name: " + iconName + ". Using default icon.");
+	        return VaadinIcon.QUESTION_CIRCLE; // Icono por defecto
+	    }
+	}
+	
+	private String getCategoryDisplayName(Category category) {
+	    String key = "category." + category.getId() + ".name";
+	    if (i18nUtil.containsKey(key)) { // Verifica si la clave existe
+	        return i18nUtil.get(key);
+	    } else {
+	        return category.getName(); // Usa el nombre directo si no hay traducción
+	    }
 	}
 
 	/**
