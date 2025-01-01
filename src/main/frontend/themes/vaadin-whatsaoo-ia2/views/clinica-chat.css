@@ -3,7 +3,6 @@
 =================================================== */
 
 /* Estilo de cada ítem del paciente */
-/* Estilo de cada ítem del paciente */
 .patient-item {
     padding: 8px 10px;
     cursor: pointer;
@@ -69,10 +68,6 @@
    BOTONES DE CATEGORÍA
 =================================================== */
 
-/* ===================================================
-   BOTONES DE CATEGORÍA - Efecto de Brillo
-=================================================== */
-
 /* Botón de categoría */
 .category-button {
     margin: 0 5px;
@@ -122,7 +117,6 @@
     border: 2px solid #007bff;
 }
 
-
 @media (max-width: 768px) {
     .category-button {
         min-width: 80px;
@@ -147,7 +141,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-	}
+}
 
 .timeline-category-icon {
     font-size: 16px;
@@ -203,7 +197,6 @@
 /* ===================================================
    HEADER DEL CHAT
 =================================================== */
-
 .chat-header {
    padding: 10px; /* Espaciado interno */
 }
@@ -216,23 +209,19 @@
 /* ===================================================
    HEADER DE CLINICA DATOS
 =================================================== */
-
 .chat-header-datos {
     background-color: #f5f5f5; /* Color de fondo del header */
     padding: 10px; /* Espaciado interno */
 }
-
 
 /* Opcional: Ocultar la barra de desplazamiento en navegadores Webkit */
 .chat-header-datos::-webkit-scrollbar {
     display: none;
 }
 
-
 /* ===================================================
    PANEL DE USUARIOS
 =================================================== */
-
 /* Panel izquierdo mejorado */
 .user-list-panel {
     background: white;
@@ -274,7 +263,6 @@
 /* ===================================================
    BOTONES DE ÍCONO
 =================================================== */
-
 /* Botón con ícono */
 .icon-button {
     background-color: transparent; /* Fondo transparente */
@@ -298,46 +286,8 @@
 }
 
 /* ===================================================
-   BOTONES DE ACCIÓN
-=================================================== */
-
-/* Botón de guardar
-.save-button {
-    background-color: var(--lumo-primary-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.save-button:hover {
-    background-color: var(--lumo-primary-color-contrast);
-}
-*/
-
-/* Botón de cerrar 
-.close-button {
-    background-color: var(--lumo-error-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-
-.close-button:hover {
-    background-color: var(--lumo-error-color-contrast);
-}
-*/
-
-/* ===================================================
    CONTENEDORES Y TARJETAS
 =================================================== */
-
 /* Contenedor moderno */
 .clinical-chat-container {
     background-color: #f0f2f5;
@@ -363,7 +313,6 @@
 /* ===================================================
    VISTAS DE ADMINISTRACIÓN Y CLIENTE
 =================================================== */
-
 /* Estilos para la vista de administración */
 .category-grid {
     border-radius: 8px;
@@ -458,7 +407,7 @@
     margin-top: 4px;
     padding: 6px 12px;
     border-radius: 8px;
-    min-width: 120px;
+    min-width: 180px;
     transition: all 0.3s ease;
 }
 
@@ -467,18 +416,6 @@
     align-items: center;
     gap: 8px;
 }
-
-.timeline-category-icon {
-    font-size: 16px;
-    color: white;
-}
-
-.timeline-category-name {
-    font-size: 0.9em;
-    font-weight: 500;
-    color: white;
-}
-
 
 /* Estados clínicos */
 .status-urgente {
@@ -501,7 +438,6 @@
     background-color: #E0E0E0;
     color: #9E9E9E;
 }
-
 
 /* Clase para el contador de estado */
 .status-count {
@@ -541,7 +477,6 @@
     padding: 10px;
     border-radius: 8px;
     margin-left: 20px;
-  
     margin-bottom: 14px;
 }
 
@@ -577,10 +512,9 @@
 
 /* Estilos para la previsualización del ícono */
 .icon-preview-container {
-    margin-left: 4px;
+    margin-left: 8px; /* Corregido el margen duplicado */
     margin-top: 36px;
     margin-bottom: 4px;
-    margin-left:8px;
     padding: 0px;
     border: 1px solid var(--lumo-contrast-20pct);
     border-radius: 4px;
