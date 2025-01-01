@@ -182,16 +182,10 @@
     box-shadow: 0 2px 4px rgba(255, 87, 34, 0.3);
 }
 
-/* Color del texto específico para fondos claros */
-.category-payments .timeline-category-name,
-.category-payments .timeline-category-icon {
-    color: #000000; /* Negro para mejor contraste sobre amarillo */
-}
-
 /* Efecto hover para mejorar la interactividad */
 .timeline-category-info:hover {
     opacity: 1;
-    transform: scale(1.02);
+    transform: scale(1.01);
 }
 
 /* ===================================================
@@ -362,6 +356,13 @@
     padding-left: 0px;
 }
 
+.timeline-category-name {
+    font-size: 0.95em;
+    font-weight: 500;
+    color: white; /* Texto en blanco para mejor contraste */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9); /* Sombra sutil */
+}
+
 /* Evento del timeline */
 .timeline-event {
     display: flex;
@@ -371,20 +372,42 @@
 }
 
 /* Icono de estado */
+/* Icono de estado con estilo de tarjeta */
 .timeline-status-icon {
-	display: flex; /* Utiliza Flexbox para alinear icono y texto */
-    align-items: center; /* Alineación vertical centrada */
-    gap: 6px; /* Espacio entre icono y texto */
+    display: flex;
+    align-items: center;
+    gap: 6px;
     flex-shrink: 0;
+    margin-top: 4px;
     margin-left: 8px;
-    margin-right: 2px;
-    min-width: 130px;
-    font-size: 18px; /* Tamaño de fuente del texto */
-    color: inherit; /* Hereda el color del padre */
-    padding: 4px 4px; /* Espaciado interno para mejor apariencia */
-    border-radius: 4px; /* Esquinas redondeadas */
-    transition: background-color 0.3s ease, transform 0.3s ease; /* Transiciones suaves */
+    margin-right: 8px;
+    padding: 6px 12px;
+    min-width: 140px;
+    border-radius: 8px;
+    background-color: rgba(0, 123, 255, 0.1); /* Fondo azul claro */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
+
+/* Icono dentro del contenedor de estado */
+.timeline-status-icon vaadin-icon {
+    font-size: 16px;
+    width: 24px;
+    height: 24px;
+}
+
+/* Texto del estado */
+.timeline-status-icon span {
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+/* Efecto hover */
+.timeline-status-icon:hover {
+    background-color: rgba(0, 123, 255, 0.2);
+    transform: translateY(-2px);
+}
+
 
 /* Detalles del evento */
 .timeline-details {
