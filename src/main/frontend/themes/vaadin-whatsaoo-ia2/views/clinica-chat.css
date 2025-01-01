@@ -489,3 +489,31 @@
     border-width: 2px; /* Aumentar el grosor del borde */
     animation: pulse-glow 2s infinite; /* Añadir animación de brillo pulsante */
 }
+
+/* Estilos para la previsualización del ícono */
+.icon-preview-container {
+    margin-left: 4px;
+    margin-top: 36px;
+    margin-bottom: 4px;
+    margin-left:8px;
+    padding: 0px;
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: 4px;
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--lumo-contrast-5pct);
+    transition: all 0.3s ease;
+}
+
+.icon-preview-container:hover {
+    background-color: var(--lumo-contrast-10pct);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.icon-preview-selected {
+    color: var(--lumo-primary-color);
+    transform: scale(1.1);
+}
