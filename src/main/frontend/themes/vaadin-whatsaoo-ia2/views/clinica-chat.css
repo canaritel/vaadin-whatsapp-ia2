@@ -342,8 +342,8 @@
 .clinical-timeline {
     position: relative;
     margin-left: 20px;
-    padding-left: 10px;
-    border-left: 2px solid var(--lumo-contrast-10pct);
+    padding-left: 0px;
+    /* border-left: 2px solid var(--lumo-contrast-10pct); */
 }
 
 /* Punto de la línea de tiempo */
@@ -378,10 +378,23 @@
     margin-top: 5px;
 }
 
-/* Clase para el ícono de estado en el timeline */
+/* Estilo para el icono de categoría en el timeline */
+.timeline-category-icon {
+    margin-left: 8px;
+    color: var(--lumo-contrast-50pct);
+    font-size: 1.2em;
+}
+
+/* Ajustar el contenedor para alinear los iconos */
+.timeline-event {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Mantener el estilo existente del icono de estado */
 .timeline-status-icon {
-    margin-right: 10px;
-    font-size: 24px; /* Tamaño adecuado */
+    flex-shrink: 0;
 }
 
 /* ===================================================
@@ -392,28 +405,28 @@
 /* Estado Urgente */
 .status-urgente {
     background-color: #FFCDD2; /* Rojo claro */
-    border-left: 5px solid #F44336; /* Rojo oscuro */
+    /*border-left: 5px solid #F44336;  Rojo oscuro */
 }
 
 .status-pendiente {
     background-color: #FFF9C4; /* Amarillo claro */
-    border-left: 5px solid #FFEB3B; /* Amarillo oscuro */
+    /*border-left: 5px solid #FFEB3B;  Amarillo oscuro */
 }
 
 .status-en-curso {
     background-color: #C5CAE9; /* Azul claro */
-    border-left: 5px solid #3F51B5; /* Azul oscuro */
+    /*border-left: 5px solid #3F51B5; Azul oscuro */
 }
 
 .status-completado {
     background-color: #C8E6C9; /* Verde claro */
-    border-left: 5px solid #4CAF50; /* Verde oscuro */
+    /*border-left: 5px solid #4CAF50; Verde oscuro */
 }
 
 /* Estado Desconocido */
 .status-unknown {
     background-color: #E0E0E0; /* Gris claro */
-    border-left: 5px solid #9E9E9E; /* Gris oscuro */
+    /*border-left: 5px solid #9E9E9E; Gris oscuro */
     color: #9E9E9E; /* Color de texto gris oscuro */
 }
 

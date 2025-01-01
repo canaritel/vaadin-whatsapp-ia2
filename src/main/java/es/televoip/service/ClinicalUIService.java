@@ -91,10 +91,6 @@ public class ClinicalUIService {
             patientSelectionListener.onPatientSelected(patient);
         }
     }
-    
-    private void setupMessageList(VerticalLayout messageList) {
-       this.messageList = messageList;
-    }
 
     /**
      * Método para mostrar datos clínicos en la interfaz con filtros de búsqueda y estado.
@@ -234,12 +230,9 @@ public class ClinicalUIService {
               .thenComparing(ClinicalData::getDate, Comparator.nullsLast(Comparator.reverseOrder()))
               // Finalmente, por displayOrder de la categoría (ascendente)
               .thenComparing(cd -> {
-                  //CategoryConfig category = categoryManager.getCategoryById(cd.getCategory());
-                  //return category != null ? category.getDisplayOrder() : Integer.MAX_VALUE;
-            	  return categoryManager.getCategoryById(cd.getCategory())
-            			    .map(Category::getDisplayOrder)
-            			    .orElse(Integer.MAX_VALUE);
-
+                  return categoryManager.getCategoryById(cd.getCategory())
+                          .map(Category::getDisplayOrder)
+                          .orElse(Integer.MAX_VALUE);
               })
           )
           .collect(Collectors.toList());
@@ -272,7 +265,7 @@ public class ClinicalUIService {
       if (filteredData.isEmpty()) {
           Div emptyMessage = new Div();
           emptyMessage.setText("No hay registros clínicos para mostrar.");
-          emptyMessage.addClassName("empty-message");
+          emptyMessage.addClassName("empty-message"); // Clase CSS para estilos
           timeline.add(emptyMessage);
       } else {
           filteredData.forEach(item -> {
@@ -303,9 +296,24 @@ public class ClinicalUIService {
                       break;
               }
 
-              // Punto de la línea de tiempo (icono de estado)
+              // Icono de estado (existente)
               Span statusIcon = createStatusIcon(item.getStatus());
               statusIcon.addClassName("timeline-status-icon");
+
+              // Nuevo: Añadir icono de categoría
+              categoryManager.getCategoryById(item.getCategory()).ifPresent(category -> {
+                  try {
+                      VaadinIcon categoryIconEnum = VaadinIcon.valueOf(category.getIcon());
+                      Icon categoryIcon = categoryIconEnum.create();
+                      categoryIcon.addClassName("timeline-category-icon"); // Nueva clase CSS
+                      categoryIcon.getElement().setAttribute("title", category.getName()); // Tooltip con el nombre de la categoría
+                      eventLayout.add(categoryIcon);
+                  } catch (IllegalArgumentException e) {
+                      // Si el icono no es válido, no mostramos nada
+                      System.err.println("Icono de categoría inválido: " + category.getIcon());
+                  }
+              });
+
               eventLayout.add(statusIcon);
 
               // Detalles del evento
@@ -340,8 +348,7 @@ public class ClinicalUIService {
       container.getChildren().filter(component -> component.hasClassName("clinical-timeline"))
           .forEach(container::remove);
       container.add(timeline);
-  }
-
+   }
 
    /**
     * Crea un icono representativo del estado clínico.
@@ -429,143 +436,164 @@ public class ClinicalUIService {
      * @param data El dato clínico para mostrar los detalles.
      */
     public void openDetailsDialog(ClinicalData data) {
-        Dialog dialog = new Dialog();
-        dialog.setWidth("600px");
-        dialog.setCloseOnEsc(true);
-        dialog.setCloseOnOutsideClick(true);
+       Dialog dialog = new Dialog();
+       dialog.setWidth("600px");
+       dialog.setCloseOnEsc(true);
+       dialog.setCloseOnOutsideClick(true);
 
-        // Cabecera del diálogo
-        H3 dialogTitle = new H3("Detalles de " + (data.getTitle() != null ? data.getTitle() : "Sin título"));
+       // Cabecera del diálogo
+       H3 dialogTitle = new H3("Detalles de " + (data.getTitle() != null ? data.getTitle() : "Sin título"));
 
-        // Formulario de detalles
-        TextField titleField = new TextField("Título");
-        titleField.setValue(data.getTitle() != null ? data.getTitle() : "");
-        titleField.setWidthFull();
+       // Formulario de detalles
+       TextField titleField = new TextField("Título");
+       titleField.setValue(data.getTitle() != null ? data.getTitle() : "");
+       titleField.setWidthFull();
 
-        TextArea descriptionArea = new TextArea("Descripción");
-        descriptionArea.setValue(data.getDescription() != null ? data.getDescription() : "");
-        descriptionArea.setWidthFull();
-        descriptionArea.setHeight("150px");
+       TextArea descriptionArea = new TextArea("Descripción");
+       descriptionArea.setValue(data.getDescription() != null ? data.getDescription() : "");
+       descriptionArea.setWidthFull();
+       descriptionArea.setHeight("150px");
 
-        // Campo de fecha
-        DatePicker datePicker = new DatePicker("Fecha");
-        if (data.getDate() != null) {
-            datePicker.setValue(data.getDate().toLocalDate());
-        } else {
-            datePicker.setValue(LocalDate.now());
-        }
+       // Campo de fecha
+       DatePicker datePicker = new DatePicker("Fecha");
+       if (data.getDate() != null) {
+           datePicker.setValue(data.getDate().toLocalDate());
+       } else {
+           datePicker.setValue(LocalDate.now());
+       }
 
-        // Campo de estado
-        ComboBox<ClinicalStatus> statusCombo = new ComboBox<>("Estado");
-        statusCombo.setItems(ClinicalStatus.values());
-        statusCombo.setItemLabelGenerator(ClinicalStatus::getDisplayName);
-        statusCombo.setValue(data.getStatus() != null ? ClinicalStatus.fromString(data.getStatus()) : ClinicalStatus.PENDIENTE);
+       // Campo de estado
+       ComboBox<ClinicalStatus> statusCombo = new ComboBox<>("Estado");
+       statusCombo.setItems(ClinicalStatus.values());
+       statusCombo.setItemLabelGenerator(ClinicalStatus::getDisplayName);
+       statusCombo.setValue(data.getStatus() != null ? ClinicalStatus.fromString(data.getStatus()) : ClinicalStatus.PENDIENTE);
 
-        // Botones de acción
-        Button saveButton = new Button("Guardar", event -> {
-            // Validaciones básicas
-            if (titleField.isEmpty() || descriptionArea.isEmpty() || datePicker.isEmpty() || statusCombo.isEmpty()) {
-                Notification.show("Todos los campos son obligatorios.", 3000, Notification.Position.MIDDLE)
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                return;
-            }
+       // **Nuevo: Campo de selección de categoría**
+       ComboBox<Category> categoryCombo = new ComboBox<>("Categoría");
+       List<Category> activeCategories = categoryManager.getActiveCategories(); // Obtener categorías activas
+       categoryCombo.setItems(activeCategories);
+       categoryCombo.setItemLabelGenerator(Category::getName);
+       categoryCombo.setPlaceholder("Seleccione una categoría");
+       
+       // Preseleccionar la categoría actual
+       categoryManager.getCategoryById(data.getCategory()).ifPresent(categoryCombo::setValue);
 
-            // Actualizar los datos
-            ClinicalStatus selectedStatus = statusCombo.getValue();
-            data.setTitle(titleField.getValue());
-            data.setDescription(descriptionArea.getValue());
-            data.setStatus(selectedStatus.getDisplayName());
-            data.setDate(datePicker.getValue().atStartOfDay());
+       // Opcional: Deshabilitar la selección de categoría si no deseas que sea editable
+       // categoryCombo.setEnabled(false); // Descomenta esta línea si quieres que la categoría no sea editable
 
-            // Guardar los cambios en el backend
-            dataManager.updateClinicalData(data);
+       // Botones de acción
+       Button saveButton = new Button("Guardar", event -> {
+           // Validaciones básicas
+           if (titleField.isEmpty() || descriptionArea.isEmpty() || datePicker.isEmpty() || statusCombo.isEmpty() || categoryCombo.isEmpty()) {
+               Notification.show("Todos los campos son obligatorios.", 3000, Notification.Position.MIDDLE)
+                       .addThemeVariants(NotificationVariant.LUMO_ERROR);
+               return;
+           }
 
-            // Refrescar el ítem del paciente
-            PatientData currentPatient = dataManager.getCurrentUser();
-            if (currentPatient != null) {
-                refreshPatientItem(currentPatient);
+           // Actualizar los datos
+           ClinicalStatus selectedStatus = statusCombo.getValue();
+           Category selectedCategory = categoryCombo.getValue(); // Obtener la categoría seleccionada
 
-                // Obtener los datos actualizados según la categoría actual
-                List<ClinicalData> updatedData;
-                if ("all".equals(currentCategoryId)) {
-                    updatedData = dataManager.getAllClinicalData(currentPatient.getPhoneNumber());
-                } else {
-                    updatedData = dataManager.getClinicalData(currentPatient.getPhoneNumber(), currentCategoryId);
-                }
+           data.setTitle(titleField.getValue());
+           data.setDescription(descriptionArea.getValue());
+           data.setStatus(selectedStatus.getDisplayName());
+           data.setDate(datePicker.getValue().atStartOfDay());
+           
+           if (selectedCategory != null) {
+               data.setCategory(selectedCategory.getId()); // Actualizar la categoría
+           }
 
-                // Re-renderizar la línea de tiempo con los datos actualizados
-                displayClinicalData(messageList, updatedData, currentCategoryId);
-            }
+           // Guardar los cambios en el backend
+           dataManager.updateClinicalData(data);
 
-            showMessage("Datos actualizados exitosamente.");
+           // Refrescar el ítem del paciente
+           PatientData currentPatient = dataManager.getCurrentUser();
+           if (currentPatient != null) {
+               refreshPatientItem(currentPatient);
 
-            dialog.close();
-        });
-
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        Button deleteButton = new Button("Eliminar", event -> {
-           // Confirmación antes de eliminar
-           Dialog confirmDialog = new Dialog();
-           confirmDialog.setWidth("400px");
-           confirmDialog.setCloseOnEsc(false);
-           confirmDialog.setCloseOnOutsideClick(false);
-
-           VerticalLayout confirmLayout = new VerticalLayout();
-           confirmLayout.setPadding(true);
-           confirmLayout.setSpacing(true);
-           confirmLayout.add(new Span("¿Estás seguro de que deseas eliminar este dato clínico?"));
-
-           HorizontalLayout confirmButtons = new HorizontalLayout();
-
-           Button confirmDelete = new Button("Eliminar", e -> {
-               dataManager.deleteClinicalData(data.getCategory(), data.getTitle());
-               showMessage("Dato clínico eliminado.");
-               confirmDialog.close();
-               dialog.close();
-
-               // Refrescar el ítem del paciente
-               PatientData currentPatient = dataManager.getCurrentUser();
-               if (currentPatient != null) {
-                   refreshPatientItem(currentPatient);
-
-                   // Recargar los datos clínicos en la línea de tiempo usando la categoría actual
-                   if (messageList != null && currentCategoryId != null) { // Verificar que currentCategoryId esté definido
-                       List<ClinicalData> updatedData;
-                       if ("all".equals(currentCategoryId)) {
-                           updatedData = dataManager.getAllClinicalData(currentPatient.getPhoneNumber());
-                       } else {
-                           updatedData = dataManager.getClinicalData(currentPatient.getPhoneNumber(), currentCategoryId);
-                       }
-                       displayClinicalData(messageList, updatedData, currentCategoryId); // Pasar categoryId
-                   }
+               // Obtener los datos actualizados según la categoría actual
+               List<ClinicalData> updatedData;
+               if ("all".equals(currentCategoryId)) {
+                   updatedData = dataManager.getAllClinicalData(currentPatient.getPhoneNumber());
+               } else {
+                   updatedData = dataManager.getClinicalData(currentPatient.getPhoneNumber(), currentCategoryId);
                }
-           });
-           confirmDelete.addThemeVariants(ButtonVariant.LUMO_ERROR);
-           Button cancelDelete = new Button("Cancelar", e -> confirmDialog.close());
 
-           confirmButtons.add(confirmDelete, cancelDelete);
-           confirmLayout.add(confirmButtons);
-           confirmDialog.add(confirmLayout);
-           confirmDialog.open();
-        });
+               // Re-renderizar la línea de tiempo con los datos actualizados
+               displayClinicalData(messageList, updatedData, currentCategoryId);
+           }
 
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+           showMessage("Datos actualizados exitosamente.");
 
-        // Layout de los botones
-        HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, deleteButton);
-        buttonLayout.setJustifyContentMode(JustifyContentMode.END);
+           dialog.close();
+       });
 
-        // Layout principal del diálogo
-        VerticalLayout dialogLayout = new VerticalLayout(dialogTitle, titleField, descriptionArea, datePicker,
-                statusCombo,
-                buttonLayout);
-        dialogLayout.setPadding(true);
-        dialogLayout.setSpacing(true);
+       saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        dialog.add(dialogLayout);
-        dialog.open();
+       Button deleteButton = new Button("Eliminar", event -> {
+          // Confirmación antes de eliminar
+          Dialog confirmDialog = new Dialog();
+          confirmDialog.setWidth("400px");
+          confirmDialog.setCloseOnEsc(false);
+          confirmDialog.setCloseOnOutsideClick(false);
+
+          VerticalLayout confirmLayout = new VerticalLayout();
+          confirmLayout.setPadding(true);
+          confirmLayout.setSpacing(true);
+          confirmLayout.add(new Span("¿Estás seguro de que deseas eliminar este dato clínico?"));
+
+          HorizontalLayout confirmButtons = new HorizontalLayout();
+
+          Button confirmDelete = new Button("Eliminar", e -> {
+              dataManager.deleteClinicalData(data.getCategory(), data.getTitle());
+              showMessage("Dato clínico eliminado.");
+              confirmDialog.close();
+              dialog.close();
+
+              // Refrescar el ítem del paciente
+              PatientData currentPatient = dataManager.getCurrentUser();
+              if (currentPatient != null) {
+                  refreshPatientItem(currentPatient);
+
+                  // Recargar los datos clínicos en la línea de tiempo usando la categoría actual
+                  if (messageList != null && currentCategoryId != null) { // Verificar que currentCategoryId esté definido
+                      List<ClinicalData> updatedData;
+                      if ("all".equals(currentCategoryId)) {
+                          updatedData = dataManager.getAllClinicalData(currentPatient.getPhoneNumber());
+                      } else {
+                          updatedData = dataManager.getClinicalData(currentPatient.getPhoneNumber(), currentCategoryId);
+                      }
+                      displayClinicalData(messageList, updatedData, currentCategoryId); // Pasar categoryId
+                  }
+              }
+          });
+          confirmDelete.addThemeVariants(ButtonVariant.LUMO_ERROR);
+          Button cancelDelete = new Button("Cancelar", e -> confirmDialog.close());
+
+          confirmButtons.add(confirmDelete, cancelDelete);
+          confirmLayout.add(confirmButtons);
+          confirmDialog.add(confirmLayout);
+          confirmDialog.open();
+       });
+
+       deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+       // Layout de los botones
+       HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, deleteButton);
+       buttonLayout.setJustifyContentMode(JustifyContentMode.END);
+
+       // Layout principal del diálogo
+       VerticalLayout dialogLayout = new VerticalLayout(dialogTitle, titleField, descriptionArea, datePicker,
+               categoryCombo, // Añadir el ComboBox de categoría al layout
+               statusCombo,
+               buttonLayout);
+       dialogLayout.setPadding(true);
+       dialogLayout.setSpacing(true);
+
+       dialog.add(dialogLayout);
+       dialog.open();
     }
+
 
     /**
      * Método para abrir el diálogo de añadir nuevos datos clínicos.

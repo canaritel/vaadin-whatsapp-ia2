@@ -153,96 +153,101 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	}
 
 	private HorizontalLayout createChatHeader() {
-	    HorizontalLayout header = new HorizontalLayout();
-	    header.addClassName("chat-header-datos");
-	    header.setWidthFull(); // Ocupa todo el ancho disponible
-	    header.setPadding(false);
-	    header.setSpacing(false);
-	    header.setDefaultVerticalComponentAlignment(Alignment.CENTER);
+	   // Configuración básica del header
+	   HorizontalLayout header = new HorizontalLayout();
+	   header.addClassName("chat-header-datos");
+	   header.setWidthFull();
+	   header.setPadding(false);
+	   header.setSpacing(false);
+	   header.setDefaultVerticalComponentAlignment(Alignment.CENTER);
+	   header.setJustifyContentMode(JustifyContentMode.AROUND);
 
-	    // Configurar Justify Content para estirar los botones y distribuir el espacio
-	    header.setJustifyContentMode(JustifyContentMode.AROUND);
+	   // Configurar scroll horizontal si es necesario
+	   header.getStyle().set("overflow", "auto");
+	   header.getStyle().set("white-space", "nowrap");
 
-	    // Permitir scroll horizontal si es necesario
-	    header.getStyle().set("overflow", "auto");
-	    header.getStyle().set("white-space", "nowrap");
+	   // Obtener categorías activas
+	   List<Category> activeCategories = categoryManager.getActiveCategories();
 
-	    // Obtener las categorías activas desde CategoryManager
-	    List<Category> activeCategories = categoryManager.getActiveCategories();
+	   // Crear botón "Todos"
+	   Button allCategoryBtn = new Button(i18nUtil.get("category.all.name"), new Icon(VaadinIcon.LIST));
+	   allCategoryBtn.addClassName("category-button");
+	   allCategoryBtn.setWidthFull();
+	   header.setFlexGrow(1, allCategoryBtn);
 
-	    // **Añadir el botón "Todos" al principio**
-	    Button allCategoryBtn = new Button(i18nUtil.get("category.all.name"), new Icon(VaadinIcon.LIST));
-	    allCategoryBtn.addClassName("category-button");
-	    allCategoryBtn.setWidthFull(); // Cada botón ocupa todo el espacio disponible en su contenedor
-	    header.setFlexGrow(1, allCategoryBtn);
+	   // Configurar el listener del botón "Todos"
+	   allCategoryBtn.addClickListener(e -> {
+	       // Verificar si hay un paciente seleccionado
+	       if (dataManager.getCurrentUser() == null) {
+	           showMessageWarning(i18nUtil.get("message.selectPatientFirst"));
+	           return;
+	       }
+	       
+	       // Actualizar estado y UI
+	       selectedCategoryId = "all";
+	       // Remover selección de todos los botones
+	       header.getChildren()
+	           .forEach(component -> component.getElement().getClassList().remove("category-button-selected"));
+	       // Marcar "Todos" como seleccionado
+	       allCategoryBtn.addClassName("category-button-selected");
+	       // Cargar datos y refrescar lista
+	       loadCategoryData("all");
+	       refreshUserList();
+	   });
 
-	    // Seleccionar "Todos" por defecto si no hay una categoría seleccionada
-	    if (selectedCategoryId == null) {
-	        allCategoryBtn.addClassName("category-button-selected");
-	        selectedCategoryId = "all"; // Definir el ID para "Todos"
-	        loadCategoryData("all");
-	    }
+	   header.add(allCategoryBtn);
 
-	    allCategoryBtn.addClickListener(e -> {
-	        selectedCategoryId = "all"; // Usar ID "all" para "Todos"
-	        header.getChildren()
-	                .forEach(component -> component.getElement().getClassList().remove("category-button-selected"));
-	        allCategoryBtn.addClassName("category-button-selected");
-	        loadCategoryData("all"); // Pasar ID "all" al método
+	   // Crear botones para las categorías activas
+	   activeCategories.forEach(category -> {
+	       // Obtener y validar el icono
+	       String iconName = category.getIcon();
+	       if (iconName == null || iconName.trim().isEmpty()) {
+	           System.err.println("Categoría con ID '" + category.getId() + "' tiene un iconName nulo o vacío.");
+	           iconName = "QUESTION_CIRCLE";
+	       }
 
-	        // **Refrescar la lista de pacientes para reflejar cambios en categorías**
-	        refreshUserList();
-	    });
+	       // Convertir nombre del icono a VaadinIcon
+	       VaadinIcon vaadinIcon = getVaadinIconFromString(iconName);
+	       if (vaadinIcon == null) {
+	           vaadinIcon = VaadinIcon.QUESTION_CIRCLE;
+	       }
 
-	    header.add(allCategoryBtn); // Añadir "Todos" al header
+	       // Obtener nombre de visualización traducido
+	       String displayName = getCategoryDisplayName(category);
 
-	    // Crear botones para las categorías activas
-	    activeCategories.forEach(category -> {
-	        // Convertir el nombre del icono en VaadinIcon
-	        String iconName = category.getIcon();
+	       // Crear botón de categoría
+	       Button categoryBtn = new Button(displayName, 
+	           vaadinIcon != null ? vaadinIcon.create() : new Icon(VaadinIcon.QUESTION));
+	       categoryBtn.addClassName("category-button");
+	       categoryBtn.setWidthFull();
+	       header.setFlexGrow(1, categoryBtn);
 
-	        // **Verificación adicional**
-	        if (iconName == null || iconName.trim().isEmpty()) {
-	            System.err.println("Categoría con ID '" + category.getId() + "' tiene un iconName nulo o vacío.");
-	            iconName = "QUESTION_CIRCLE"; // Asignar un icono por defecto
-	        }
+	       // Verificar si esta categoría está seleccionada
+	       if (category.getId().equals(selectedCategoryId)) {
+	           categoryBtn.addClassName("category-button-selected");
+	       }
 
-	        VaadinIcon vaadinIcon = getVaadinIconFromString(iconName);
-	        if (vaadinIcon == null) {
-	            vaadinIcon = VaadinIcon.QUESTION_CIRCLE; // Icono por defecto si no se encuentra el icono
-	        }
+	       // Configurar listener del botón de categoría
+	       categoryBtn.addClickListener(e -> {
+	           // Verificar si hay un paciente seleccionado
+	           if (dataManager.getCurrentUser() == null) {
+	               showMessageWarning(i18nUtil.get("message.selectPatientFirst"));
+	               return;
+	           }
+	           
+	           // Actualizar estado y UI
+	           selectedCategoryId = category.getId();
+	           header.getChildren()
+	               .forEach(component -> component.getElement().getClassList().remove("category-button-selected"));
+	           categoryBtn.addClassName("category-button-selected");
+	           loadCategoryData(category.getId());
+	           refreshUserList();
+	       });
 
-	        // **Uso de Claves Específicas para Categorías**
-	        String displayName = getCategoryDisplayName(category);
+	       header.add(categoryBtn);
+	   });
 
-	        Button categoryBtn = new Button(displayName,
-	                vaadinIcon != null ? vaadinIcon.create() : new Icon(VaadinIcon.QUESTION));
-
-	        categoryBtn.addClassName("category-button");
-	        categoryBtn.setWidthFull(); // Cada botón ocupa todo el espacio disponible en su contenedor
-
-	        // Establecer el flex-grow a 1 para distribuir uniformemente el espacio
-	        header.setFlexGrow(1, categoryBtn);
-
-	        if (category.getId().equals(selectedCategoryId)) { // Comparar ID
-	            categoryBtn.addClassName("category-button-selected");
-	        }
-
-	        categoryBtn.addClickListener(e -> {
-	            selectedCategoryId = category.getId(); // Usar ID
-	            header.getChildren()
-	                    .forEach(component -> component.getElement().getClassList().remove("category-button-selected"));
-	            categoryBtn.addClassName("category-button-selected");
-	            loadCategoryData(category.getId()); // Pasar ID
-
-	            // **Refrescar la lista de pacientes para reflejar cambios en categorías**
-	            refreshUserList();
-	        });
-
-	        header.add(categoryBtn);
-	    });
-
-	    return header;
+	   return header;
 	}
 
 	/**
