@@ -78,6 +78,7 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
         add(categoriesGrid);
     }
 
+    /*
     private void setupCategoriesGrid() {
         categoriesGrid.removeAllColumns();
 
@@ -133,63 +134,156 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
 
         categoriesGrid.setItems(categoryManager.getAllCategories());
     }
+    */
+    
+    private void setupCategoriesGrid() {
+       categoriesGrid.removeAllColumns();
+
+       // Columna de categoría con ícono
+       categoriesGrid.addColumn(new ComponentRenderer<>(category -> {
+           HorizontalLayout layout = new HorizontalLayout();
+           layout.setAlignItems(Alignment.CENTER);
+           layout.setSpacing(true);
+           
+           // Crear y añadir el ícono
+           try {
+               VaadinIcon vaadinIcon = VaadinIcon.valueOf(category.getIcon());
+               Icon icon = vaadinIcon.create();
+               icon.setSize("16px");
+               layout.add(icon);
+           } catch (IllegalArgumentException e) {
+               Icon defaultIcon = VaadinIcon.QUESTION_CIRCLE.create();
+               defaultIcon.setSize("16px");
+               layout.add(defaultIcon);
+           }
+           
+           Span name = new Span(category.getName());
+           layout.add(name);
+           
+           return layout;
+       }))
+       .setHeader(i18nUtil.get("field.name.label"))
+       .setWidth("200px")
+       .setFlexGrow(1);
+
+       // Columna de estado
+       categoriesGrid.addColumn(new ComponentRenderer<>(category -> {
+           Checkbox activeBox = new Checkbox();
+           activeBox.setValue(category.isActive());
+           activeBox.setEnabled(false);
+           return activeBox;
+       }))
+       .setHeader(i18nUtil.get("field.active.label"))
+       .setWidth("110px")
+       .setFlexGrow(0);
+
+       // Columna de orden
+       categoriesGrid.addColumn(Category::getDisplayOrder)
+           .setHeader(i18nUtil.get("field.order.label"))
+           .setWidth("90px")
+           .setFlexGrow(0);
+
+       // Nueva columna para flechas de ordenamiento
+       categoriesGrid.addColumn(new ComponentRenderer<>(this::createOrderButtons))
+           .setHeader(i18nUtil.get("dialog.moveCategory.header"))
+           .setWidth("100px")
+           .setFlexGrow(0);
+
+       // Columna de acciones con botones de editar y eliminar
+       categoriesGrid.addColumn(new ComponentRenderer<>(category -> {
+           HorizontalLayout actions = new HorizontalLayout();
+           actions.setSpacing(true);
+
+           Button editButton = new Button(i18nUtil.get("button.configure.label"), VaadinIcon.COG.create());
+           editButton.addClickListener(e -> openCategoryEditor(category));
+           editButton.getElement().setAttribute("title", i18nUtil.get("tooltip.configureCategory"));
+
+           Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
+           deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+           deleteButton.addClickListener(e -> confirmDelete(category));
+           deleteButton.getElement().setAttribute("title", i18nUtil.get("tooltip.deleteCategory"));
+
+           actions.add(editButton, deleteButton);
+           return actions;
+       }))
+       .setHeader(i18nUtil.get("dialog.actions.header"))
+       .setWidth("200px")
+       .setFlexGrow(0);
+
+       categoriesGrid.setItems(categoryManager.getAllCategories());
+    }
 
     private void openNewCategoryDialog() {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(i18nUtil.get("dialog.newCategory.title"));
+       Dialog dialog = new Dialog();
+       dialog.setHeaderTitle(i18nUtil.get("dialog.newCategory.title"));
 
-        // Formulario simplificado
-        TextField nameField = new TextField(i18nUtil.get("field.name.label"));
-        //Checkbox activeField = new Checkbox(i18nUtil.get("field.active.label"));
-        //activeField.setValue(true);
-        
-        ComboBox<VaadinIcon> iconCombo = new ComboBox<>(i18nUtil.get("field.icon.label"));
-        iconCombo.setItems(VaadinIcon.values());
-        iconCombo.setItemLabelGenerator(icon -> convertEnumNameToDisplayName(icon.name()));
-        iconCombo.setRequired(true);
-        iconCombo.setValue(VaadinIcon.LIST); // Valor por defecto
+       // Campos del formulario
+       TextField nameField = new TextField(i18nUtil.get("field.name.label"));
+       nameField.setRequired(true);
+       nameField.setWidthFull();
 
-        Checkbox activeField = new Checkbox(i18nUtil.get("field.active.label"));
-        activeField.setValue(true);
+       ComboBox<VaadinIcon> iconCombo = new ComboBox<>(i18nUtil.get("field.icon.label"));
+       iconCombo.setItems(VaadinIcon.values());
+       iconCombo.setRenderer(new ComponentRenderer<>(icon -> {
+           HorizontalLayout layout = new HorizontalLayout();
+           layout.setAlignItems(Alignment.CENTER);
+           layout.add(icon.create(), new Span(convertEnumNameToDisplayName(icon.name())));
+           return layout;
+       }));
+       iconCombo.setPlaceholder(i18nUtil.get("field.icon.placeholder")); // Asegúrate de tener esta clave en tus archivos de propiedades
+       iconCombo.setRequired(true);
+       // No establecer un valor por defecto para forzar al usuario a seleccionar
 
-        // Botones
-        Button saveButton = new Button(i18nUtil.get("button.save.label"), e -> {
-            if (nameField.getValue().trim().isEmpty()) {
-                nameField.setInvalid(true);
-                return;
-            }
+       Checkbox activeField = new Checkbox(i18nUtil.get("field.active.label"));
+       activeField.setValue(false); // Establecer como desactivado por defecto
 
-            Category newCategory = Category.builder()
-                .id(UUID.randomUUID().toString()) // Usar UUID para IDs únicos
-                .name(nameField.getValue().trim())
-                .isActive(activeField.getValue())
-                .displayOrder(categoryManager.getAllCategories().size() + 1)
-                .subCategories(new ArrayList<>())
-                .build();
+       // Botones
+       Button saveButton = new Button(i18nUtil.get("button.save.label"), e -> {
+           if (nameField.getValue().trim().isEmpty() || iconCombo.getValue() == null) {
+               nameField.setInvalid(true);
+               iconCombo.setInvalid(true);
+               // Opcional: Mostrar un mensaje de error específico
+               MyNotification.showWarning(
+                   i18nUtil.get("notification.iconRequired"),
+                   Notification.Position.MIDDLE,
+                   NotificationVariant.LUMO_ERROR,
+                   3000
+               );
+               return;
+           }
 
-            categoryManager.addCategory(newCategory);
-            refreshGrid();
-            dialog.close();
-            MyNotification.show(
-                i18nUtil.get("message.categoryAdded"),
-                Notification.Position.MIDDLE,
-                NotificationVariant.LUMO_SUCCESS,
-                3000
-            );
-        });
+           Category newCategory = Category.builder()
+               .id(UUID.randomUUID().toString()) // Usar UUID para IDs únicos
+               .name(nameField.getValue().trim())
+               .icon(iconCombo.getValue().name()) // Asignar el icono seleccionado
+               .isActive(activeField.getValue())
+               .displayOrder(categoryManager.getAllCategories().size() + 1)
+               .subCategories(new ArrayList<>())
+               .build();
 
-        Button cancelButton = new Button(i18nUtil.get("button.cancel.label"), e -> dialog.close());
+           categoryManager.addCategory(newCategory);
+           refreshGrid();
+           dialog.close();
+           MyNotification.show(
+               i18nUtil.get("message.categoryAdded"),
+               Notification.Position.MIDDLE,
+               NotificationVariant.LUMO_SUCCESS,
+               3000
+           );
+       });
 
-        // Layout
-        VerticalLayout layout = new VerticalLayout(nameField, activeField);
-        layout.setSpacing(true);
-        layout.setPadding(true);
+       Button cancelButton = new Button(i18nUtil.get("button.cancel.label"), e -> dialog.close());
 
-        HorizontalLayout buttons = new HorizontalLayout(saveButton, cancelButton);
-        buttons.setSpacing(true);
+       // Layout
+       VerticalLayout layout = new VerticalLayout(nameField, iconCombo, activeField);
+       layout.setSpacing(true);
+       layout.setPadding(true);
 
-        dialog.add(layout, buttons);
-        dialog.open();
+       HorizontalLayout buttons = new HorizontalLayout(saveButton, cancelButton);
+       buttons.setSpacing(true);
+
+       dialog.add(layout, buttons);
+       dialog.open();
     }
     
     private String convertEnumNameToDisplayName(String enumName) {
@@ -287,132 +381,162 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
     }
 
     private void openCategoryEditor(Category category) {
-        // Crear una copia temporal de la categoría original
-        Category tempCategory = category.toBuilder()
-            .subCategories(new ArrayList<>(category.getSubCategories()))
-            .build();
+       // Crear una copia temporal de la categoría original
+       Category tempCategory = category.toBuilder()
+           .subCategories(new ArrayList<>(category.getSubCategories()))
+           .build();
 
-        Dialog dialog = new Dialog();
-        String dialogTitleText = i18nUtil.getFormatted("dialog.editCategory.title", category.getName());
-        dialog.setHeaderTitle(dialogTitleText);
-        dialog.setWidth("600px");
-        dialog.setModal(true);
-        dialog.setCloseOnOutsideClick(false); // Deshabilitar cierre al hacer clic fuera
+       Dialog dialog = new Dialog();
+       String dialogTitleText = i18nUtil.getFormatted("dialog.editCategory.title", category.getName());
+       dialog.setHeaderTitle(dialogTitleText);
+       dialog.setWidth("600px");
+       dialog.setModal(true);
+       dialog.setCloseOnOutsideClick(false); // Deshabilitar cierre al hacer clic fuera
 
-        // Campo para el nombre de la categoría
-        TextField nameField = new TextField(i18nUtil.get("field.name.label"), tempCategory.getName());
-        nameField.setRequired(true);
-        nameField.setValue(category.getName()); // sobreescribimos el nombre categoria
+       // Campo para el nombre de la categoría
+       TextField nameField = new TextField(i18nUtil.get("field.name.label"), tempCategory.getName());
+       nameField.setRequired(true);
+       nameField.setValue(category.getName()); // sobreescribimos el nombre categoria
 
-        // Estado general de la categoría
-        Checkbox activeCheckbox = new Checkbox(i18nUtil.get("field.active.label"), tempCategory.isActive());
-        activeCheckbox.addValueChangeListener(e -> tempCategory.setActive(e.getValue()));
+       // Campo para seleccionar el icono
+       ComboBox<VaadinIcon> iconCombo = new ComboBox<>(i18nUtil.get("field.icon.label"));
+       iconCombo.setItems(VaadinIcon.values());
+       iconCombo.setRenderer(new ComponentRenderer<>(icon -> {
+           HorizontalLayout layout = new HorizontalLayout();
+           layout.setAlignItems(Alignment.CENTER);
+           layout.add(icon.create(), new Span(convertEnumNameToDisplayName(icon.name())));
+           return layout;
+       }));
+       iconCombo.setPlaceholder(i18nUtil.get("field.icon.placeholder")); // Asegúrate de tener esta clave en tus archivos de propiedades
+       iconCombo.setRequired(true);
 
-        // Subcategorías
-        H2 subcategoriesTitle = new H2(i18nUtil.get("dialog.subCategories.title"));
+       // Seleccionar el icono actual de la categoría
+       try {
+           iconCombo.setValue(VaadinIcon.valueOf(tempCategory.getIcon()));
+       } catch (IllegalArgumentException e) {
+           System.err.println("Icono '" + tempCategory.getIcon() + "' inválido para la categoría '" + category.getName() + "'. Usando icono por defecto.");
+           iconCombo.setValue(VaadinIcon.QUESTION_CIRCLE); // Icono por defecto
+       }
 
-        // Grid para mostrar subcategorías
-        Grid<SubCategory> subCategoriesGrid = new Grid<>(SubCategory.class, false);
-        subCategoriesGrid.addColumn(SubCategory::getName)
-            .setHeader(i18nUtil.get("field.name.label"))
-            .setWidth("200px")
-            .setFlexGrow(1);
-        subCategoriesGrid.addColumn(new ComponentRenderer<>(sub -> {
-            Checkbox activeSub = new Checkbox();
-            activeSub.setValue(sub.isActive());
-            activeSub.setEnabled(false); // Deshabilitar edición directa
-            return activeSub;
-        }))
-        .setHeader(i18nUtil.get("field.active.label"))
-        .setWidth("100px")
-        .setFlexGrow(0);
+       // Estado general de la categoría
+       Checkbox activeCheckbox = new Checkbox(i18nUtil.get("field.active.label"), tempCategory.isActive());
+       activeCheckbox.addValueChangeListener(e -> tempCategory.setActive(e.getValue()));
 
-        // Botones de acción para cada subcategoría
-        subCategoriesGrid.addColumn(new ComponentRenderer<>(sub -> {
-            HorizontalLayout actions = new HorizontalLayout();
-            actions.setSpacing(true);
+       // Subcategorías
+       H2 subcategoriesTitle = new H2(i18nUtil.get("dialog.subCategories.title"));
 
-            Button editSubButton = new Button(new Icon(VaadinIcon.EDIT));
-            editSubButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            editSubButton.addClickListener(e -> openSubCategoryEditor(dialog, subCategoriesGrid, tempCategory, sub));
-            editSubButton.getElement().setAttribute("title", i18nUtil.get("tooltip.editSubCategory"));
+       // Grid para mostrar subcategorías
+       Grid<SubCategory> subCategoriesGrid = new Grid<>(SubCategory.class, false);
+       subCategoriesGrid.addColumn(SubCategory::getName)
+           .setHeader(i18nUtil.get("field.name.label"))
+           .setWidth("200px")
+           .setFlexGrow(1);
+       subCategoriesGrid.addColumn(new ComponentRenderer<>(sub -> {
+           Checkbox activeSub = new Checkbox();
+           activeSub.setValue(sub.isActive());
+           activeSub.setEnabled(false); // Deshabilitar edición directa
+           return activeSub;
+       }))
+       .setHeader(i18nUtil.get("field.active.label"))
+       .setWidth("100px")
+       .setFlexGrow(0);
 
-            Button deleteSubButton = new Button(new Icon(VaadinIcon.TRASH));
-            deleteSubButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-            deleteSubButton.addClickListener(e -> {
-                tempCategory.getSubCategories().remove(sub);
-                subCategoriesGrid.setItems(tempCategory.getSubCategories());
-                MyNotification.show(
-                    i18nUtil.get("message.subCategoryDeleted"),
-                    Notification.Position.MIDDLE,
-                    NotificationVariant.LUMO_SUCCESS,
-                    3000
-                );
-            });
-            deleteSubButton.getElement().setAttribute("title", i18nUtil.get("tooltip.deleteSubCategory"));
+       // Botones de acción para cada subcategoría
+       subCategoriesGrid.addColumn(new ComponentRenderer<>(sub -> {
+           HorizontalLayout actions = new HorizontalLayout();
+           actions.setSpacing(true);
 
-            actions.add(editSubButton, deleteSubButton);
-            return actions;
-        }))
-        .setHeader(i18nUtil.get("dialog.actions.header"))
-        .setWidth("150px")
-        .setFlexGrow(0);
+           Button editSubButton = new Button(new Icon(VaadinIcon.EDIT));
+           editSubButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+           editSubButton.addClickListener(e -> openSubCategoryEditor(dialog, subCategoriesGrid, tempCategory, sub));
+           editSubButton.getElement().setAttribute("title", i18nUtil.get("tooltip.editSubCategory"));
 
-        subCategoriesGrid.setItems(tempCategory.getSubCategories());
+           Button deleteSubButton = new Button(new Icon(VaadinIcon.TRASH));
+           deleteSubButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+           deleteSubButton.addClickListener(e -> {
+               tempCategory.getSubCategories().remove(sub);
+               subCategoriesGrid.setItems(tempCategory.getSubCategories());
+               MyNotification.show(
+                   i18nUtil.get("message.subCategoryDeleted"),
+                   Notification.Position.MIDDLE,
+                   NotificationVariant.LUMO_SUCCESS,
+                   3000
+               );
+           });
+           deleteSubButton.getElement().setAttribute("title", i18nUtil.get("tooltip.deleteSubCategory"));
 
-        // Botón para agregar una nueva subcategoría
-        Button addSubCategoryButton = new Button(i18nUtil.get("button.addSubCategory.label"), VaadinIcon.PLUS.create());
-        addSubCategoryButton.addClickListener(e -> openSubCategoryEditor(dialog, subCategoriesGrid, tempCategory, null));
+           actions.add(editSubButton, deleteSubButton);
+           return actions;
+       }))
+       .setHeader(i18nUtil.get("dialog.actions.header"))
+       .setWidth("150px")
+       .setFlexGrow(0);
 
-        // Layout de subcategorías
-        VerticalLayout subcategoriesLayout = new VerticalLayout(subcategoriesTitle, subCategoriesGrid, addSubCategoryButton);
-        subcategoriesLayout.setSpacing(true);
-        subcategoriesLayout.setPadding(false);
+       subCategoriesGrid.setItems(tempCategory.getSubCategories());
 
-        // Botón para guardar cambios
-        Button saveButton = new Button(i18nUtil.get("button.save.label"), event -> {
-            if (nameField.getValue().trim().isEmpty()) {
-                nameField.setInvalid(true);
-                return;
-            }
-            // Actualizar el objeto temporal con el valor del campo de texto
-            tempCategory.setName(nameField.getValue().trim());
+       // Botón para agregar una nueva subcategoría
+       Button addSubCategoryButton = new Button(i18nUtil.get("button.addSubCategory.label"), VaadinIcon.PLUS.create());
+       addSubCategoryButton.addClickListener(e -> openSubCategoryEditor(dialog, subCategoriesGrid, tempCategory, null));
 
-            // Aplicar los cambios del objeto temporal al objeto original
-            category.setName(tempCategory.getName());
-            category.setActive(tempCategory.isActive());
-            category.setSubCategories(tempCategory.getSubCategories());
+       // Layout de subcategorías
+       VerticalLayout subcategoriesLayout = new VerticalLayout(subcategoriesTitle, subCategoriesGrid, addSubCategoryButton);
+       subcategoriesLayout.setSpacing(true);
+       subcategoriesLayout.setPadding(false);
 
-            // Actualizar en el CategoryManager
-            categoryManager.updateCategory(category);
+       // Botón para guardar cambios
+       Button saveButton = new Button(i18nUtil.get("button.save.label"), event -> {
+           if (nameField.getValue().trim().isEmpty() || iconCombo.getValue() == null) {
+               nameField.setInvalid(true);
+               iconCombo.setInvalid(true);
+               // Opcional: Mostrar un mensaje de error específico
+               MyNotification.showWarning(
+                   i18nUtil.get("notification.iconRequired"),
+                   Notification.Position.MIDDLE,
+                   NotificationVariant.LUMO_ERROR,
+                   3000
+               );
+               return;
+           }
+           // Actualizar el objeto temporal con el valor del campo de texto y el icono
+           tempCategory.setName(nameField.getValue().trim());
+           tempCategory.setIcon(iconCombo.getValue().name());
 
-            // Refrescar el Grid para mostrar los cambios
-            refreshGrid();
+           // Aplicar los cambios del objeto temporal al objeto original
+           category.setName(tempCategory.getName());
+           category.setIcon(tempCategory.getIcon());
+           category.setActive(tempCategory.isActive());
+           category.setSubCategories(tempCategory.getSubCategories());
 
-            // Cerrar el diálogo
-            dialog.close();
-            MyNotification.show(
-                i18nUtil.get("message.categoryUpdated"),
-                Notification.Position.MIDDLE,
-                NotificationVariant.LUMO_SUCCESS,
-                3000
-            );
-        });
+           // Actualizar en el CategoryManager
+           categoryManager.updateCategory(category);
 
-        // Botón para cerrar sin guardar
-        Button closeButton = new Button(i18nUtil.get("button.cancel.label"), event -> dialog.close());
+           // Refrescar el Grid para mostrar los cambios
+           refreshGrid();
 
-        // Layout de los botones
-        HorizontalLayout buttons = new HorizontalLayout(saveButton, closeButton);
-        buttons.setSpacing(true);
+           // Cerrar el diálogo
+           dialog.close();
+           MyNotification.show(
+               i18nUtil.get("message.categoryUpdated"),
+               Notification.Position.MIDDLE,
+               NotificationVariant.LUMO_SUCCESS,
+               3000
+           );
+       });
 
-        // Layout principal del diálogo
-        VerticalLayout dialogLayout = new VerticalLayout(nameField, activeCheckbox, subcategoriesLayout, buttons);
-        dialogLayout.setSpacing(true);
-        dialogLayout.setPadding(true);
+       // Botón para cerrar sin guardar
+       Button closeButton = new Button(i18nUtil.get("button.cancel.label"), event -> dialog.close());
 
-        dialog.add(dialogLayout);
-        dialog.open();
+       // Layout de los botones
+       HorizontalLayout buttons = new HorizontalLayout(saveButton, closeButton);
+       buttons.setSpacing(true);
+
+       // Layout principal del diálogo
+       VerticalLayout dialogLayout = new VerticalLayout(nameField, iconCombo, activeCheckbox, subcategoriesLayout, buttons);
+       dialogLayout.setSpacing(true);
+       dialogLayout.setPadding(true);
+
+       dialog.add(dialogLayout);
+       dialog.open();
     }
 
     // Método para abrir el editor de subcategorías
