@@ -237,24 +237,6 @@ public class ClinicalUIService {
           )
           .collect(Collectors.toList());
 
-      // Log para verificar el ordenamiento
-      System.out.println("=== Eventos Ordenados ===");
-      filteredData.forEach(cd -> {
-          String categoryName = categoryManager.getCategoryById(cd.getCategory())
-              .map(Category::getName)
-              .orElse("Unknown");
-          int displayOrder = categoryManager.getCategoryById(cd.getCategory())
-              .map(Category::getDisplayOrder)
-              .orElse(Integer.MAX_VALUE);
-          int statusPriority = getStatusPriority(cd.getStatus());
-          String date = (cd.getDate() != null) ? cd.getDate().toLocalDate().toString() : "Fecha no disponible";
-          System.out.println("Categoría: " + categoryName +
-              ", displayOrder: " + displayOrder +
-              ", Status Priority: " + statusPriority +
-              ", Date: " + date +
-              ", Título: " + cd.getTitle());
-      });
-
       // Crear una línea de tiempo
       VerticalLayout timeline = new VerticalLayout();
       timeline.addClassName("clinical-timeline");
@@ -265,7 +247,7 @@ public class ClinicalUIService {
       if (filteredData.isEmpty()) {
           Div emptyMessage = new Div();
           emptyMessage.setText("No hay registros clínicos para mostrar.");
-          emptyMessage.addClassName("empty-message"); // Clase CSS para estilos
+          emptyMessage.addClassName("empty-message");
           timeline.add(emptyMessage);
       } else {
           filteredData.forEach(item -> {
@@ -296,25 +278,9 @@ public class ClinicalUIService {
                       break;
               }
 
-              // Icono de estado (existente)
+              // Punto de la línea de tiempo (icono de estado)
               Span statusIcon = createStatusIcon(item.getStatus());
               statusIcon.addClassName("timeline-status-icon");
-
-              // Nuevo: Añadir icono de categoría
-              categoryManager.getCategoryById(item.getCategory()).ifPresent(category -> {
-                  try {
-                      VaadinIcon categoryIconEnum = VaadinIcon.valueOf(category.getIcon());
-                      Icon categoryIcon = categoryIconEnum.create();
-                      categoryIcon.addClassName("timeline-category-icon"); // Nueva clase CSS
-                      categoryIcon.getElement().setAttribute("title", category.getName()); // Tooltip con el nombre de la categoría
-                      eventLayout.add(categoryIcon);
-                  } catch (IllegalArgumentException e) {
-                      // Si el icono no es válido, no mostramos nada
-                      System.err.println("Icono de categoría inválido: " + category.getIcon());
-                  }
-              });
-
-              eventLayout.add(statusIcon);
 
               // Detalles del evento
               VerticalLayout eventDetails = new VerticalLayout();
@@ -338,14 +304,47 @@ public class ClinicalUIService {
               detailsButton.addClickListener(e -> openDetailsDialog(item));
 
               eventDetails.add(date, title, description, detailsButton);
-              eventLayout.add(eventDetails);
 
+              // Contenedor para la información de categoría (derecha)
+              Div categoryInfo = new Div();
+              categoryInfo.addClassName("timeline-category-info");
+
+              categoryManager.getCategoryById(item.getCategory()).ifPresent(category -> {
+                  try {
+                      // Crear contenedor para icono y nombre de categoría
+                      HorizontalLayout categoryContent = new HorizontalLayout();
+                      categoryContent.addClassName("timeline-category-content");
+                      categoryContent.setSpacing(true);
+                      categoryContent.setAlignItems(Alignment.CENTER);
+
+                      // Agregar icono
+                      VaadinIcon vaadinIcon = VaadinIcon.valueOf(category.getIcon());
+                      Icon icon = vaadinIcon.create();
+                      icon.addClassName("timeline-category-icon");
+
+                      // Agregar nombre
+                      Span categoryName = new Span(category.getName());
+                      categoryName.addClassName("timeline-category-name");
+
+                      categoryContent.add(icon, categoryName);
+                      categoryInfo.add(categoryContent);
+
+                      // Agregar clase específica de la categoría
+                      String categoryClass = "category-" + category.getId().toLowerCase();
+                      eventLayout.addClassName(categoryClass);
+                  } catch (IllegalArgumentException e) {
+                      System.err.println("Icono inválido para categoría: " + category.getIcon());
+                  }
+              });
+
+              eventLayout.add(statusIcon, eventDetails, categoryInfo);
               timeline.add(eventLayout);
           });
       }
 
       // Eliminar la línea de tiempo anterior si existe y añadir la nueva
-      container.getChildren().filter(component -> component.hasClassName("clinical-timeline"))
+      container.getChildren()
+          .filter(component -> component.hasClassName("clinical-timeline"))
           .forEach(container::remove);
       container.add(timeline);
    }

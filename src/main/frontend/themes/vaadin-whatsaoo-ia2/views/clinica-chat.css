@@ -131,6 +131,75 @@
     }
 }
 
+/* **************************************************************************************** */
+/* Estilos base para el área de categoría */
+.timeline-category-info {
+    margin-left: 0px;
+    margin-right: 8px;
+    margin-top: 4px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    min-width: 120px; /* Asegura un ancho mínimo */
+    transition: all 0.3s ease;
+}
+
+.timeline-category-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+	}
+
+.timeline-category-icon {
+    font-size: 16px;
+    color: white; /* Icono en blanco para mejor contraste */
+}
+
+.timeline-category-name {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: white; /* Texto en blanco para mejor contraste */
+}
+
+/* Estilos específicos por categoría con colores de fondo */
+.category-appointments .timeline-category-info {
+    background-color: rgba(76, 175, 80, 0.8); /* Verde con transparencia */
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.category-treatments .timeline-category-info {
+    background-color: rgba(33, 150, 243, 0.8); /* Azul con transparencia */
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+}
+
+.category-payments .timeline-category-info {
+    background-color: rgba(255, 193, 7, 0.8); /* Amarillo con transparencia */
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+}
+
+/* Fondo púrpura - texto blanco */
+.category-documents .timeline-category-info {
+    background-color: rgba(156, 39, 176, 0.9); /* Púrpura más sólido */
+    box-shadow: 0 2px 4px rgba(156, 39, 176, 0.3);
+}
+
+/* Fondo naranja - texto blanco */
+.category-communications .timeline-category-info {
+    background-color: rgba(255, 87, 34, 0.9); /* Naranja más sólido */
+    box-shadow: 0 2px 4px rgba(255, 87, 34, 0.3);
+}
+
+/* Color del texto específico para fondos claros */
+.category-payments .timeline-category-name,
+.category-payments .timeline-category-icon {
+    color: #000000; /* Negro para mejor contraste sobre amarillo */
+}
+
+/* Efecto hover para mejorar la interactividad */
+.timeline-category-info:hover {
+    opacity: 1;
+    transform: scale(1.02);
+}
+
 /* ===================================================
    HEADER DEL CHAT
 =================================================== */
@@ -335,25 +404,29 @@
 }
 
 /* ===================================================
-   LÍNEA DE TIEMPO
+   TIMELINE
 =================================================== */
-
-/* Estilos para la línea de tiempo */
+/* Contenedor principal */
 .clinical-timeline {
     position: relative;
     margin-left: 20px;
     padding-left: 0px;
-    /* border-left: 2px solid var(--lumo-contrast-10pct); */
 }
 
-/* Punto de la línea de tiempo */
-.timeline-point {
-    width: 12px;
-    height: 12px;
-    background-color: var(--lumo-primary-color);
-    border-radius: 50%;
-    margin-right: 10px;
-    margin-top: 6px;
+/* Evento del timeline */
+.timeline-event {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+/* Icono de estado */
+.timeline-status-icon {
+    flex-shrink: 0;
+    margin-left: 8px;
+    margin-right: 2px;
+    font-size: 24px;
 }
 
 /* Detalles del evento */
@@ -361,7 +434,7 @@
     background-color: var(--lumo-contrast-5pct);
     padding: 10px;
     border-radius: 8px;
-    margin-bottom: 4px; /* Ajusta este valor según tus preferencias */
+    flex-grow: 1;
 }
 
 .timeline-date {
@@ -378,56 +451,55 @@
     margin-top: 5px;
 }
 
-/* Estilo para el icono de categoría en el timeline */
-.timeline-category-icon {
-    margin-left: 8px;
-    color: var(--lumo-contrast-50pct);
-    font-size: 1.2em;
+/* Categoría en timeline */
+.timeline-category-info {
+    margin-left: 0px;
+    margin-right: 8px;
+    margin-top: 4px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    min-width: 120px;
+    transition: all 0.3s ease;
 }
 
-/* Ajustar el contenedor para alinear los iconos */
-.timeline-event {
+.timeline-category-content {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-/* Mantener el estilo existente del icono de estado */
-.timeline-status-icon {
-    flex-shrink: 0;
+.timeline-category-icon {
+    font-size: 16px;
+    color: white;
 }
 
-/* ===================================================
-   ESTADOS CLÍNICOS
-=================================================== */
+.timeline-category-name {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: white;
+}
 
-/* Clases para los estados */
-/* Estado Urgente */
+
+/* Estados clínicos */
 .status-urgente {
-    background-color: #FFCDD2; /* Rojo claro */
-    /*border-left: 5px solid #F44336;  Rojo oscuro */
+    background-color: #FFCDD2;
 }
 
 .status-pendiente {
-    background-color: #FFF9C4; /* Amarillo claro */
-    /*border-left: 5px solid #FFEB3B;  Amarillo oscuro */
+    background-color: #FFF9C4;
 }
 
 .status-en-curso {
-    background-color: #C5CAE9; /* Azul claro */
-    /*border-left: 5px solid #3F51B5; Azul oscuro */
+    background-color: #C5CAE9;
 }
 
 .status-completado {
-    background-color: #C8E6C9; /* Verde claro */
-    /*border-left: 5px solid #4CAF50; Verde oscuro */
+    background-color: #C8E6C9;
 }
 
-/* Estado Desconocido */
 .status-unknown {
-    background-color: #E0E0E0; /* Gris claro */
-    /*border-left: 5px solid #9E9E9E; Gris oscuro */
-    color: #9E9E9E; /* Color de texto gris oscuro */
+    background-color: #E0E0E0;
+    color: #9E9E9E;
 }
 
 
@@ -436,7 +508,7 @@
     font-size: 12px; /* Ajusta según necesidad */
     color: #333; /* Color del texto del contador */
     vertical-align: middle;
-    margin-right: 8px; /* Espacio entre contadores */
+    margin-right: 6px; /* Espacio entre contadores */
 }
 
 /* Clase para el contenedor de íconos de estado */
