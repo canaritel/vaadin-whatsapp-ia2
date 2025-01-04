@@ -25,7 +25,7 @@ public class PatientService {
         PatientData patient = PatientData.builder()
             .phoneNumber(phoneNumber)
             .name(name)
-            .data(new ArrayList<>(data)) // Asegura que la lista es mutable
+            .clinicalDataList(new ArrayList<>(data)) // Asegura que la lista es mutable
             .build();
         addPatientData(phoneNumber, patient);
     }
@@ -38,8 +38,8 @@ public class PatientService {
     // Obtener todos los datos clínicos de un paciente
     public List<ClinicalData> getAllClinicalData(String phoneNumber) {
         PatientData patient = patientsData.get(phoneNumber);
-        if (patient != null && patient.getData() != null) {
-            return new ArrayList<>(patient.getData()); // Retorna una copia para evitar modificaciones externas
+        if (patient != null && patient.getClinicalDataList() != null) {
+            return new ArrayList<>(patient.getClinicalDataList()); // Retorna una copia para evitar modificaciones externas
         }
         return new ArrayList<>();
     }
@@ -52,10 +52,10 @@ public class PatientService {
     // Obtener datos clínicos por categoría
     public List<ClinicalData> getClinicalData(String phoneNumber, String category) {
        PatientData patient = patientsData.get(phoneNumber);
-       if (patient == null || patient.getData() == null) {
+       if (patient == null || patient.getClinicalDataList() == null) {
            return new ArrayList<>();
        }
-       return patient.getData().stream()
+       return patient.getClinicalDataList().stream()
            .filter(data -> data.getCategory().equalsIgnoreCase(category))
            .collect(Collectors.toList());
    }
@@ -74,22 +74,22 @@ public class PatientService {
     public void addClinicalData(String phoneNumber, ClinicalData data) {
         PatientData patient = patientsData.get(phoneNumber);
         if (patient != null) {
-            if (patient.getData() == null) {
-                patient.setData(new ArrayList<>());
+            if (patient.getClinicalDataList() == null) {
+                patient.setClinicalDataList(null);
             }
-            patient.getData().add(data);
+            patient.getClinicalDataList().add(data);
         }
     }
 
     // Actualizar dato clínico existente
     public void updateClinicalData(ClinicalData updatedData) {
         PatientData patient = getCurrentUser();
-        if (patient != null && patient.getData() != null) {
+        if (patient != null && patient.getClinicalDataList() != null) {
             // Buscar el dato clínico por categoría y título
-            for (int i = 0; i < patient.getData().size(); i++) {
-                ClinicalData data = patient.getData().get(i);
+            for (int i = 0; i < patient.getClinicalDataList().size(); i++) {
+                ClinicalData data = patient.getClinicalDataList().get(i);
                 if (data.getCategory().equalsIgnoreCase(updatedData.getCategory()) && data.getTitle().equalsIgnoreCase(updatedData.getTitle())) {
-                    patient.getData().set(i, updatedData);
+                    patient.getClinicalDataList().set(i, updatedData);
                     break;
                 }
             }
@@ -99,8 +99,8 @@ public class PatientService {
     // Eliminar dato clínico
     public void deleteClinicalData(String category, String title) {
         PatientData patient = getCurrentUser();
-        if (patient != null && patient.getData() != null) {
-            patient.getData().removeIf(data -> 
+        if (patient != null && patient.getClinicalDataList() != null) {
+            patient.getClinicalDataList().removeIf(data -> 
                 data.getCategory().equalsIgnoreCase(category) &&
                 data.getTitle().equalsIgnoreCase(title)
             );

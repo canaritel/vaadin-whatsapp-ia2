@@ -905,9 +905,10 @@ public class PatientlUIService {
 		statusIconsContainer.addClassName("status-icons-container");
 
 		// Analizar estados de los datos del paciente
-		if (patient.getData() != null && !patient.getData().isEmpty()) {
+		//if (patient.getData() != null && !patient.getData().isEmpty()) {
+		if (patient.getClinicalDataList() != null && !patient.getClinicalDataList().isEmpty()) {
 			// Agrupar por ClinicalStatus en lugar de String
-			Map<ClinicalStatus, Long> statusCounts = patient.getData().stream().filter(data -> data.getStatus() != null)
+			Map<ClinicalStatus, Long> statusCounts = patient.getClinicalDataList().stream().filter(data -> data.getStatus() != null)
 					.map(data -> {
 						try {
 							return ClinicalStatus.fromString(data.getStatus());
