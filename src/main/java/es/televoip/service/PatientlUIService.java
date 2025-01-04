@@ -40,7 +40,7 @@ import es.televoip.util.MyNotification;
 import es.televoip.util.StringUtils;
 
 @Service
-public class ClinicalUIService {
+public class PatientlUIService {
 	private final PatientService dataManager;
 	private final CategoryService categoryManager;
 
@@ -82,7 +82,7 @@ public class ClinicalUIService {
 		this.messageList = messageList;
 	}
 
-	public ClinicalUIService(PatientService dataManager, CategoryService categoryManager, I18nUtil i18nUtil) {
+	public PatientlUIService(PatientService dataManager, CategoryService categoryManager, I18nUtil i18nUtil) {
 		this.dataManager = dataManager;
 		this.categoryManager = categoryManager;
 		this.i18nUtil = i18nUtil;

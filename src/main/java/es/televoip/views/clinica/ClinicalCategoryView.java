@@ -25,6 +25,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import es.televoip.model.entities.Category;
@@ -36,7 +37,8 @@ import es.televoip.views.MainLayout;
 
 //@org.springframework.stereotype.Component
 @Route(value = "clinic-admin", layout = MainLayout.class) // Usa MainLayout como diseño principal
-public class ClinicalAdminView extends VerticalLayout { // No implementar Translatable
+@PageTitle("Gestión Categorías") 
+public class ClinicalCategoryView extends VerticalLayout { // No implementar Translatable
 
     private static final long serialVersionUID = 1L;
 
@@ -44,7 +46,7 @@ public class ClinicalAdminView extends VerticalLayout { // No implementar Transl
     private final I18nUtil i18nUtil; // Inyectar I18nUtil
     private final Grid<Category> categoriesGrid;
 
-    public ClinicalAdminView(CategoryService categoryManager, I18nUtil i18nUtil) {
+    public ClinicalCategoryView(CategoryService categoryManager, I18nUtil i18nUtil) {
         this.categoryManager = categoryManager;
         this.i18nUtil = i18nUtil;
         this.categoriesGrid = new Grid<>(Category.class);

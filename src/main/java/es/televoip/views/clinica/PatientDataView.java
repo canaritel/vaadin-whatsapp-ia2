@@ -22,7 +22,7 @@ import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 import es.televoip.service.CategoryService;
 import es.televoip.service.PatientService;
-import es.televoip.service.ClinicalUIService;
+import es.televoip.service.PatientlUIService;
 import es.televoip.util.I18nUtil;
 import es.televoip.util.LocaleChangeNotifier;
 import es.televoip.util.MyNotification;
@@ -30,15 +30,15 @@ import es.televoip.util.Translatable;
 import es.televoip.views.MainLayout;
 
 @Route(value = "clinica-datos", layout = MainLayout.class) // Usa MainLayout como diseño principal
-@PageTitle("Clínica Datos") // Este título se actualizará dinámicamente
-public class ClinicalDataView extends HorizontalLayout implements Translatable {
+@PageTitle("Datos Pacientes") // Este título se actualizará dinámicamente
+public class PatientDataView extends HorizontalLayout implements Translatable {
 	private static final long serialVersionUID = 1L;
 
 	private final PatientService dataManager;
 	
 	@SuppressWarnings("unused")
 	private final CategoryService categoryManager;
-	private ClinicalUIService uiManager; // Ya no es final porque se inicializa después del patientList
+	private PatientlUIService uiManager; // Ya no es final porque se inicializa después del patientList
 
 	// Componentes principales
 	private VerticalLayout userListLayout;
@@ -51,7 +51,7 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	// Inyecta I18nUtil
 	private final I18nUtil i18nUtil;
 
-	public ClinicalDataView(PatientService dataManager, CategoryService categoryManager, I18nUtil i18nUtil) {
+	public PatientDataView(PatientService dataManager, CategoryService categoryManager, I18nUtil i18nUtil) {
 		this.dataManager = dataManager;
 		this.categoryManager = categoryManager;
 		this.i18nUtil = i18nUtil;
@@ -65,7 +65,7 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 		initializeComponents();
 
 		// Crear el ChatUIManager después de inicializar los componentes
-		this.uiManager = new ClinicalUIService(dataManager, categoryManager, i18nUtil);
+		this.uiManager = new PatientlUIService(dataManager, categoryManager, i18nUtil);
 
 		// Entonces configurar el uiManager
 		this.uiManager.setPatientListLayout(patientList);
