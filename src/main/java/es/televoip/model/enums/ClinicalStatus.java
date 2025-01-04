@@ -1,7 +1,6 @@
 package es.televoip.model.enums;
 
 public enum ClinicalStatus {
-   ALL("all", "Todos"), // Valor especial para "Todos"
    URGENTE("urgent", "Urgente"),
    PENDIENTE("pending", "Pendiente"),
    EN_CURSO("in_progress", "En curso"),
