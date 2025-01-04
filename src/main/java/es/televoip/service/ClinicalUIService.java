@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.ComboBoxVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -132,21 +133,33 @@ public class ClinicalUIService {
      */
     private void createFilterLayout(VerticalLayout container) {
        filterLayout = new HorizontalLayout();
-       filterLayout.addClassName("filter-layout");  // Añadir la clase
+       filterLayout.addClassName("filter-layout");
        filterLayout.setWidth("97%");
-       filterLayout.setSpacing(true);
+       filterLayout.setSpacing(false);
        filterLayout.setPadding(false);
-       filterLayout.setAlignItems(Alignment.END);
-
+       filterLayout.setAlignItems(Alignment.CENTER);
+       
        // Campo de búsqueda
        searchField = createSearchField();
        
+       // Contenedor para el filtro de estado y su título
+       HorizontalLayout statusFilterContainer = new HorizontalLayout();
+       statusFilterContainer.addClassName("status-filter-container");
+       statusFilterContainer.setSpacing(true);
+       statusFilterContainer.setAlignItems(Alignment.END);
+       
+       // Título
+       //Span tituloTipo = new Span("Tipo de estado");
+       //tituloTipo.addClassName("filter-title");
+       
        // Filtro de estado
        statusFilter = createStatusFilter();
-
-       filterLayout.add(searchField, statusFilter);
        
-       // Añadir los filtros al principio del contenedor
+       // Agrupar título y filtro
+       statusFilterContainer.add(statusFilter);
+
+       filterLayout.add(searchField, statusFilterContainer);
+       
        if (container.getComponentCount() > 0) {
            container.addComponentAsFirst(filterLayout);
        } else {
@@ -154,55 +167,61 @@ public class ClinicalUIService {
        }
    }
 
-   private TextField createSearchField() {
+    private TextField createSearchField() {
        TextField field = new TextField();
        field.setPlaceholder("Buscar por título o descripción");
        field.setWidth("300px");
        field.setValueChangeMode(ValueChangeMode.EAGER);
-       field.setValue(currentSearchTerm); // Mantener el valor actual
-       
+       field.addClassName("custom-status-filter"); // Misma clase que el combo
+
        field.addValueChangeListener(event -> {
            currentSearchTerm = event.getValue();
+           
+           // Aplicar o remover clase activa basado en si hay texto
+           if (!event.getValue().isEmpty()) {
+               field.addClassName("filter-active");
+           } else {
+               field.removeClassName("filter-active");
+           }
+           
            applyFilters(messageList);
        });
-       
+
        return field;
    }
 
    private ComboBox<String> createStatusFilter() {
-      ComboBox<String> filter = new ComboBox<>(); // Eliminar el título del constructor
+      ComboBox<String> filter = new ComboBox<>();
       
-      // Configurar el ComboBox
-      filter.setItems("Todos", "Urgente", "Pendiente", "En curso", "Completado");
-      filter.setValue(currentStatusFilter);
-      
-      // Aplicar clase personalizada
+      filter.setPlaceholder("Seleccione un estado");
       filter.addClassName("custom-status-filter");
+      filter.setWidth("220px");
       
-      // Verificar la selección inicial y aplicar el estilo si es necesario
-      if (!"Todos".equals(currentStatusFilter)) {
-          filter.addClassName("filter-active");
-      }
+      filter.setItems("Todos", "Urgente", "Pendiente", "En curso", "Completado");
       
-      // Listener para actualizar filtros y aplicar/remover estilos
+      // Establecer valor interno pero no visual
+      currentStatusFilter = "Todos";
+      
       filter.addValueChangeListener(event -> {
-          currentStatusFilter = event.getValue();
-          applyFilters(messageList);
-          
-          // Aplicar o remover la clase 'filter-active' basado en la selección
-          if (!"Todos".equals(currentStatusFilter)) {
-              filter.addClassName("filter-active");
+          String newValue = event.getValue();
+          if (newValue == null) {
+              currentStatusFilter = "Todos"; // Valor por defecto interno
           } else {
-              filter.removeClassName("filter-active");
+              currentStatusFilter = newValue;
+              if (!"Todos".equals(newValue)) {
+                  filter.addClassName("filter-active");
+              } else {
+                  filter.removeClassName("filter-active");
+              }
           }
+          applyFilters(messageList);
       });
       
-      // Reducir el ancho del ComboBox ya que ahora el label está al lado
-      filter.setWidth("180px");
+      // NO establecer valor visual inicial
+      // filter.setValue(currentStatusFilter);
       
       return filter;
-   }
-
+  }
    
     /**
      * Aplica los filtros actuales (estado y búsqueda) a los datos clínicos y actualiza la UI.
