@@ -66,10 +66,16 @@ public class ClinicalUIService {
     // Referencia al layout de filtros
     private HorizontalLayout filterLayout;
     
+    private ComboBox<Category> categoryFilter;
+    
     // Estado de los filtros
     private boolean areFiltersCreated = false; // Nuevo flag para rastrear si los filtros ya fueron creados
     
     private final I18nUtil i18nUtil;
+    
+    private static final String CATEGORY_ALL_ID = "all";
+    private static String CATEGORY_ALL_NAME;
+
 
     public void setMessageList(VerticalLayout messageList) {
         this.messageList = messageList;
@@ -79,6 +85,8 @@ public class ClinicalUIService {
         this.dataManager = dataManager;
         this.categoryManager = categoryManager;
         this.i18nUtil = i18nUtil;
+        
+        CATEGORY_ALL_NAME = i18nUtil.get("clinical.category.all");
     }
 
     // Método setter para el listener
@@ -105,30 +113,18 @@ public class ClinicalUIService {
      * @param data      La lista de datos clínicos a mostrar.
      */
     public void displayClinicalData(VerticalLayout container, List<ClinicalData> newData, String categoryId) {
-       // Preservar el estado actual de los filtros antes de actualizar
-       preserveFiltersState();
+       if (container == null) return;
        
        this.currentCategoryId = categoryId;
        this.allData = new ArrayList<>(newData);
 
-       // Si los filtros no existen, crearlos
        if (!areFiltersCreated) {
            createFilterLayout(container);
-           areFiltersCreated = true;
-       } else {
-           // Asegurar que los filtros estén visibles y en el contenedor correcto
-           if (!container.getChildren().anyMatch(component -> component == filterLayout)) {
-               container.addComponentAsFirst(filterLayout);
-           }
-           filterLayout.setVisible(true);
-           
-           // Restaurar los valores de los filtros
-           searchField.setValue(currentSearchTerm);
-           statusFilter.setValue(currentStatusFilter);
        }
 
-       // Aplicar los filtros actuales
-       applyFilters(container);
+       if (messageList != null) {
+           applyFilters(container);
+       }
    }
 
     /**
@@ -147,35 +143,132 @@ public class ClinicalUIService {
        // Campo de búsqueda
        searchField = createSearchField();
        
-       // Contenedor para el filtro de estado y su título
-       HorizontalLayout statusFilterContainer = new HorizontalLayout();
-       statusFilterContainer.addClassName("status-filter-container");
-       statusFilterContainer.setSpacing(true);
-       statusFilterContainer.setAlignItems(Alignment.END);
-       
-       // Título
-       //Span tituloTipo = new Span("Tipo de estado");
-       //tituloTipo.addClassName("filter-title");
+       // ComboBox de categorías
+       categoryFilter = createCategoryFilter();
        
        // Filtro de estado
        statusFilter = createStatusFilter();
        
-       // Agrupar título y filtro
-       statusFilterContainer.add(statusFilter);
-
-       filterLayout.add(searchField, statusFilterContainer);
+       filterLayout.add(searchField, categoryFilter, statusFilter);
        
        if (container.getComponentCount() > 0) {
            container.addComponentAsFirst(filterLayout);
        } else {
            container.add(filterLayout);
        }
+
+       // No aplicar filtros aquí
+       areFiltersCreated = true;
+   }
+    
+    // En ClinicalUIService
+    public void loadCategoryData(String category) {
+       if (dataManager.getCurrentUser() == null) {
+           showMessageWarning(i18nUtil.get("message.selectPatientFirst"));
+           return;
+       }
+
+       List<ClinicalData> data;
+       if ("all".equals(category)) {
+           data = dataManager.getAllClinicalData(dataManager.getCurrentUser().getPhoneNumber());
+       } else {
+           data = dataManager.getClinicalData(dataManager.getCurrentUser().getPhoneNumber(), category);
+       }
+
+       // No limpiar todo el messageList, solo los datos
+       clearPreviousData();
+       displayClinicalData(messageList, data, category);
+   }
+    
+    private ComboBox<Category> createCategoryFilter() {
+       ComboBox<Category> filterCategory = new ComboBox<>();
+       
+       // Usar i18nUtil para el placeholder
+       filterCategory.setPlaceholder(i18nUtil.get("filter.category.placeholder"));
+       filterCategory.addClassName("custom-status-filter");
+       filterCategory.setWidth("240px");
+       
+       // Crear lista de categorías activas
+       List<Category> activeCategories = new ArrayList<>(categoryManager.getActiveCategories());
+       
+       // Crear la categoría ficticia "Todos"
+       Category allCategory = Category.builder()
+           .id(CATEGORY_ALL_ID)
+           .name(CATEGORY_ALL_NAME)
+           .isActive(true) // Puede ser activo o no, según prefieras
+           .build();
+       
+       // Prepend "Todos" al inicio de la lista de categorías
+       List<Category> categoriesWithAll = new ArrayList<>();
+       categoriesWithAll.add(allCategory);
+       categoriesWithAll.addAll(activeCategories);
+       
+       filterCategory.setItems(categoriesWithAll);
+       filterCategory.setItemLabelGenerator(Category::getName);
+
+       // Permitir la selección nula si deseas manejar "Todos" como selección nula
+       // filterCategory.setAllowCustomValue(false);
+       // filterCategory.setEmptySelectionAllowed(true);
+       
+       // Listener para manejar la selección
+       filterCategory.addValueChangeListener(event -> {
+           Category selectedCategory = event.getValue();
+           if (selectedCategory == null || CATEGORY_ALL_ID.equals(selectedCategory.getId())) {
+               currentCategoryId = "all"; // valor por defecto interno
+               filterCategory.removeClassName("filter-active");
+           } else {
+               currentCategoryId = selectedCategory.getId();
+               filterCategory.addClassName("filter-active");
+           }
+           
+           if (messageList != null && dataManager.getCurrentUser() != null) {
+               loadCategoryData(currentCategoryId);
+           }
+       });
+       
+       return filterCategory;
    }
 
+   
+    private ComboBox<String> createStatusFilter() {
+       ComboBox<String> filterStatus = new ComboBox<>();
+       
+       filterStatus.setPlaceholder(i18nUtil.get("filter.status.placeholder"));
+       filterStatus.addClassName("custom-status-filter");
+       filterStatus.setWidth("240px");
+       
+       // Lista de estados usando displayName del enum
+       List<String> estados = Arrays.stream(ClinicalStatus.values())
+           .map(ClinicalStatus::getDisplayName)
+           .collect(Collectors.toList());
+       
+       filterStatus.setItems(estados);
+       
+       // No establecer valor inicial para mantener el placeholder
+       // currentStatusFilter = "Todos"; // internamente mantenemos el valor
+       
+       filterStatus.addValueChangeListener(event -> {
+           String newValue = event.getValue();
+           if (newValue == null) {
+               currentStatusFilter = "Todos"; // valor por defecto interno
+           } else {
+               currentStatusFilter = newValue;
+               if (!"Todos".equals(newValue)) {
+                   filterStatus.addClassName("filter-active");
+               } else {
+                   filterStatus.removeClassName("filter-active");
+               }
+           }
+           applyFilters(messageList);
+       });
+       
+       return filterStatus;
+   }
+    
     private TextField createSearchField() {
        TextField field = new TextField();
-       field.setPlaceholder("Buscar por título o descripción");
-       field.setWidth("300px");
+       field.setPlaceholder(i18nUtil.get("clinical.searchfield"));
+       field.setWidth("260px");
        field.setValueChangeMode(ValueChangeMode.EAGER);
        field.addClassName("custom-status-filter"); // Misma clase que el combo
 
@@ -194,40 +287,9 @@ public class ClinicalUIService {
 
        return field;
    }
-
-    private ComboBox<String> createStatusFilter() {
-       ComboBox<String> filter = new ComboBox<>();
-       
-       filter.setPlaceholder(i18nUtil.get("filter.status.placeholder"));
-       filter.addClassName("custom-status-filter");
-       filter.setWidth("240px");
-       
-       // Lista de estados usando displayName del enum
-       List<String> estados = Arrays.stream(ClinicalStatus.values())
-           .map(ClinicalStatus::getDisplayName)
-           .collect(Collectors.toList());
-       
-       filter.setItems(estados);
-       
-       // No establecer valor inicial para mantener el placeholder
-       // currentStatusFilter = "Todos"; // internamente mantenemos el valor
-       
-       filter.addValueChangeListener(event -> {
-           String newValue = event.getValue();
-           if (newValue == null) {
-               currentStatusFilter = "Todos"; // valor por defecto interno
-           } else {
-               currentStatusFilter = newValue;
-               if (!"Todos".equals(newValue)) {
-                   filter.addClassName("filter-active");
-               } else {
-                   filter.removeClassName("filter-active");
-               }
-           }
-           applyFilters(messageList);
-       });
-       
-       return filter;
+    
+    public String getCurrentCategoryId() {
+       return currentCategoryId;
    }
    
     /**
@@ -1016,6 +1078,12 @@ public class ClinicalUIService {
     
     public void clearPreviousData() {
        this.allData = new ArrayList<>();
+       if (messageList != null) {
+           // Mantener los filtros, solo limpiar el contenido
+           messageList.getChildren()
+               .filter(component -> component.hasClassName("clinical-timeline"))
+               .forEach(messageList::remove);
+       }
    }
     
     private void showMessage(String message) {

@@ -104,54 +104,57 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	 * Método que se ejecuta cuando se selecciona un paciente. Si hay una categoría seleccionada, se cargan los datos correspondientes.
 	 */
 	private void onPatientSelected(PatientData patient) {
-		// Limpiar datos anteriores
-		messageList.removeAll();
-		uiManager.clearPreviousData(); // Añadir este método en ChatUIManager
+	    // Solo limpiar los datos, no los filtros
+	    uiManager.clearPreviousData();
 
-		if (selectedCategoryId != null) {
-			loadCategoryData(selectedCategoryId);
-		}
+	    // Recargar datos con la categoría actual
+	    if (uiManager.getCurrentCategoryId() != null) {
+	        uiManager.loadCategoryData(uiManager.getCurrentCategoryId());
+	    } else {
+	        // Si no hay categoría seleccionada, cargar todos
+	        uiManager.loadCategoryData("all");
+	    }
 	}
 
 	private void setupLayout() {
-		// Panel izquierdo (lista de usuarios)
-		createUserPanel();
+	    // Panel izquierdo (lista de usuarios)
+	    createUserPanel();
 
-		// Panel central (chat)
-		createChatPanel();
+	    // Panel central
+	    createChatPanel();
+	    
+	    // Configurar messageList en el uiManager
+	    uiManager.setMessageList(messageList);
+	    
+	    // Ahora sí inicializamos los filtros
+	    uiManager.displayClinicalData(messageList, new ArrayList<>(), "all");
 
-		// Panel derecho (información clínica)
-		createClinicalPanel();
+	    // Asegurarse de que no haya padding o margen en el layout principal
+	    setPadding(false);
+	    setSpacing(false);
+	    setSizeFull();
 
-		// Configurar messageList después de crear el chat panel
-		uiManager.setMessageList(messageList);
-
-		// Asegurarse de que no haya padding o margen en el layout principal
-		setPadding(false);
-		setSpacing(false);
-		setSizeFull(); // Ocupa todo el espacio disponible
-
-		add(userListLayout, chatLayout);
+	    add(userListLayout, chatLayout);
 	}
 
 	private void createChatPanel() {
-		chatLayout = new VerticalLayout();
-		chatLayout.setWidthFull();
-		chatLayout.setHeightFull();
-		chatLayout.setPadding(false);
-		chatLayout.setSpacing(false);
+	    chatLayout = new VerticalLayout();
+	    chatLayout.setWidthFull();
+	    chatLayout.setHeightFull();
+	    chatLayout.setPadding(false);
+	    chatLayout.setSpacing(false);
 
-		// Header del chat con categorías
-		HorizontalLayout header = createChatHeader();
+	    // Área de mensajes
+	    messageList = new VerticalLayout();
+	    messageList.addClassName("message-list");
+	    messageList.setHeightFull();
 
-		// Área de mensajes
-		messageList = new VerticalLayout();
-		messageList.addClassName("message-list");
-		messageList.setHeightFull();
+	    chatLayout.add(messageList);
 
-		chatLayout.add(header, messageList);
+	    // Inicializar los filtros aunque no haya datos
+	    uiManager.displayClinicalData(messageList, new ArrayList<>(), "all");
 	}
-
+	
 	private HorizontalLayout createChatHeader() {
 	   // Configuración básica del header
 	   HorizontalLayout header = new HorizontalLayout();
@@ -191,7 +194,7 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	       // Marcar "Todos" como seleccionado
 	       allCategoryBtn.addClassName("category-button-selected");
 	       // Cargar datos y refrescar lista
-	       loadCategoryData("all");
+	       //loadCategoryData("all");
 	       refreshUserList();
 	   });
 
@@ -240,7 +243,7 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	           header.getChildren()
 	               .forEach(component -> component.getElement().getClassList().remove("category-button-selected"));
 	           categoryBtn.addClassName("category-button-selected");
-	           loadCategoryData(category.getId());
+	           //loadCategoryData(category.getId());
 	           refreshUserList();
 	       });
 
@@ -273,35 +276,6 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 	    } else {
 	        return category.getName(); // Usa el nombre directo si no hay traducción
 	    }
-	}
-
-	/**
-	 * Método para cargar los datos de una categoría específica para el usuario actual.
-	 */
-	private void loadCategoryData(String category) {
-		if (dataManager.getCurrentUser() == null) {
-			System.out.println("DEBUG: No hay usuario seleccionado");
-			showMessageWarning(i18nUtil.get("message.selectPatientFirst"));
-			return;
-		}
-
-		System.out.println("DEBUG: Cargando datos para categoría: " + category);
-		System.out.println("DEBUG: Usuario actual: " + dataManager.getCurrentUser().getName());
-
-		List<ClinicalData> data;
-		if ("all".equals(category)) {
-			data = dataManager.getAllClinicalData(dataManager.getCurrentUser().getPhoneNumber());
-		} else {
-			data = dataManager.getClinicalData(dataManager.getCurrentUser().getPhoneNumber(), category);
-		}
-
-		System.out.println("DEBUG: Datos obtenidos: " + data.size() + " registros");
-		data.forEach(
-				d -> System.out.println("DEBUG: Dato -> Categoría: " + d.getCategory() + ", Título: " + d.getTitle()));
-
-		messageList.removeAll();
-		uiManager.clearPreviousData();
-		uiManager.displayClinicalData(messageList, data, category); // Pasar categoryId
 	}
 
 	private void createUserPanel() {
