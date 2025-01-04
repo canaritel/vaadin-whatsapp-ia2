@@ -2,6 +2,7 @@ package es.televoip.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import es.televoip.model.entities.Category;
 import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 import es.televoip.model.enums.ClinicalStatus;
+import es.televoip.util.I18nUtil;
 import es.televoip.util.MyNotification;
 import es.televoip.util.StringUtils;
 
@@ -66,14 +68,17 @@ public class ClinicalUIService {
     
     // Estado de los filtros
     private boolean areFiltersCreated = false; // Nuevo flag para rastrear si los filtros ya fueron creados
+    
+    private final I18nUtil i18nUtil;
 
     public void setMessageList(VerticalLayout messageList) {
         this.messageList = messageList;
     }
 
-    public ClinicalUIService(PatientService dataManager, CategoryService categoryManager) {
+    public ClinicalUIService(PatientService dataManager, CategoryService categoryManager, I18nUtil i18nUtil) {
         this.dataManager = dataManager;
         this.categoryManager = categoryManager;
+        this.i18nUtil = i18nUtil;
     }
 
     // Método setter para el listener
@@ -190,38 +195,40 @@ public class ClinicalUIService {
        return field;
    }
 
-   private ComboBox<String> createStatusFilter() {
-      ComboBox<String> filter = new ComboBox<>();
-      
-      filter.setPlaceholder("Seleccione un estado");
-      filter.addClassName("custom-status-filter");
-      filter.setWidth("220px");
-      
-      filter.setItems("Todos", "Urgente", "Pendiente", "En curso", "Completado");
-      
-      // Establecer valor interno pero no visual
-      currentStatusFilter = "Todos";
-      
-      filter.addValueChangeListener(event -> {
-          String newValue = event.getValue();
-          if (newValue == null) {
-              currentStatusFilter = "Todos"; // Valor por defecto interno
-          } else {
-              currentStatusFilter = newValue;
-              if (!"Todos".equals(newValue)) {
-                  filter.addClassName("filter-active");
-              } else {
-                  filter.removeClassName("filter-active");
-              }
-          }
-          applyFilters(messageList);
-      });
-      
-      // NO establecer valor visual inicial
-      // filter.setValue(currentStatusFilter);
-      
-      return filter;
-  }
+    private ComboBox<String> createStatusFilter() {
+       ComboBox<String> filter = new ComboBox<>();
+       
+       filter.setPlaceholder(i18nUtil.get("filter.status.placeholder"));
+       filter.addClassName("custom-status-filter");
+       filter.setWidth("240px");
+       
+       // Lista de estados usando displayName del enum
+       List<String> estados = Arrays.stream(ClinicalStatus.values())
+           .map(ClinicalStatus::getDisplayName)
+           .collect(Collectors.toList());
+       
+       filter.setItems(estados);
+       
+       // No establecer valor inicial para mantener el placeholder
+       // currentStatusFilter = "Todos"; // internamente mantenemos el valor
+       
+       filter.addValueChangeListener(event -> {
+           String newValue = event.getValue();
+           if (newValue == null) {
+               currentStatusFilter = "Todos"; // valor por defecto interno
+           } else {
+               currentStatusFilter = newValue;
+               if (!"Todos".equals(newValue)) {
+                   filter.addClassName("filter-active");
+               } else {
+                   filter.removeClassName("filter-active");
+               }
+           }
+           applyFilters(messageList);
+       });
+       
+       return filter;
+   }
    
     /**
      * Aplica los filtros actuales (estado y búsqueda) a los datos clínicos y actualiza la UI.

@@ -64,7 +64,7 @@ public class ClinicalDataView extends HorizontalLayout implements Translatable {
 		initializeComponents();
 
 		// Crear el ChatUIManager después de inicializar los componentes
-		this.uiManager = new ClinicalUIService(dataManager, categoryManager);
+		this.uiManager = new ClinicalUIService(dataManager, categoryManager, i18nUtil);
 
 		// Entonces configurar el uiManager
 		this.uiManager.setPatientListLayout(patientList);
