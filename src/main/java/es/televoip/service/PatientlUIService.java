@@ -863,135 +863,143 @@ public class PatientlUIService {
 	 */
 	@Transactional(readOnly = true)
 	public HorizontalLayout createPatientListItem(PatientData patient) {
-		// Layout principal del item
-		HorizontalLayout patientItem = new HorizontalLayout();
-		patientItem.addClassName("patient-item");
-		patientItem.setWidthFull();
-		patientItem.setPadding(false); // Evitar padding redundante
-		patientItem.setAlignItems(Alignment.CENTER);
+	    System.err.println("Creando ítem de paciente para: " + patient.getName() + " (" + patient.getPhoneNumber() + ")");
 
-		// Asignar el número de teléfono como ID sin el símbolo "+"
-		String phoneNumber = patient.getPhoneNumber().startsWith("+") ? patient.getPhoneNumber().substring(1)
-				: patient.getPhoneNumber();
-		patientItem.setId(phoneNumber);
+	    // Layout principal del ítem
+	    HorizontalLayout patientItem = new HorizontalLayout();
+	    patientItem.addClassName("patient-item");
+	    patientItem.setWidthFull();
+	    patientItem.setPadding(false); // Evitar padding redundante
+	    patientItem.setAlignItems(Alignment.CENTER);
 
-		// Avatar o imagen del paciente
-		Div avatar = new Div();
-		avatar.addClassName("patient-avatar");
-		avatar.setText(patient.getName().substring(0, 1).toUpperCase());
+	    // Asignar el número de teléfono como ID sin el símbolo "+"
+	    String phoneNumber = patient.getPhoneNumber().startsWith("+") ? patient.getPhoneNumber().substring(1)
+	            : patient.getPhoneNumber();
+	    patientItem.setId(phoneNumber);
+	    System.err.println("Asignado ID al ítem del paciente: " + phoneNumber);
 
-		// Información del paciente
-		VerticalLayout patientInfo = new VerticalLayout();
-		patientInfo.setPadding(false);
-		patientInfo.setSpacing(false);
-		patientInfo.setFlexGrow(1); // Permite que ocupe el espacio disponible
+	    // Avatar o imagen del paciente
+	    Div avatar = new Div();
+	    avatar.addClassName("patient-avatar");
+	    String avatarInitial = (patient.getName() != null && !patient.getName().isEmpty()) 
+	                            ? patient.getName().substring(0, 1).toUpperCase() 
+	                            : "?";
+	    avatar.setText(avatarInitial);
+	    System.err.println("Avatar configurado con la inicial: " + avatarInitial);
 
-		// Nombre del paciente
-		Span name = new Span(patient.getName());
-		name.addClassName("patient-name");
+	    // Información del paciente
+	    VerticalLayout patientInfo = new VerticalLayout();
+	    patientInfo.setPadding(false);
+	    patientInfo.setSpacing(false);
+	    patientInfo.setFlexGrow(1); // Permite que ocupe el espacio disponible
 
-		// Teléfono del paciente
-		Span phone = new Span(patient.getPhoneNumber());
-		phone.addClassName("patient-phone");
+	    // Nombre del paciente
+	    Span name = new Span(patient.getName());
+	    name.addClassName("patient-name");
+	    System.err.println("Nombre del paciente añadido: " + patient.getName());
 
-		patientInfo.add(name, phone);
+	    // Teléfono del paciente
+	    Span phone = new Span(patient.getPhoneNumber());
+	    phone.addClassName("patient-phone");
+	    System.err.println("Teléfono del paciente añadido: " + patient.getPhoneNumber());
 
-		// Contenedor para los iconos de estado
-		HorizontalLayout statusIconsContainer = new HorizontalLayout();
-		statusIconsContainer.setSpacing(false); // Manejar espaciado via CSS
-		statusIconsContainer.getStyle().set("overflow-x", "auto");
-		statusIconsContainer.getStyle().set("white-space", "nowrap");
+	    patientInfo.add(name, phone);
 
-		statusIconsContainer.setAlignItems(Alignment.CENTER);
-		statusIconsContainer.addClassName("status-icons-container");
+	    // Contenedor para los iconos de estado
+	    HorizontalLayout statusIconsContainer = new HorizontalLayout();
+	    statusIconsContainer.setSpacing(false); // Manejar espaciado via CSS
+	    statusIconsContainer.getStyle().set("overflow-x", "auto");
+	    statusIconsContainer.getStyle().set("white-space", "nowrap");
+	    statusIconsContainer.setAlignItems(Alignment.CENTER);
+	    statusIconsContainer.addClassName("status-icons-container");
+	    System.err.println("Contenedor de iconos de estado creado.");
 
-		// Analizar estados de los datos del paciente
-		if (patient.getClinicalDataList() != null && !patient.getClinicalDataList().isEmpty()) {
-			// Agrupar por ClinicalStatus en lugar de String
-			Map<ClinicalStatus, Long> statusCounts = patient.getClinicalDataList().stream()
-					.filter(data -> data.getStatus() != null).map(data -> {
-						try {
-							return ClinicalStatus.fromString(data.getStatus());
-						} catch (IllegalArgumentException e) {
-							return null; // Puedes manejar estados desconocidos de otra manera si lo deseas
-						}
-					}).filter(cs -> cs != null).collect(Collectors.groupingBy(cs -> cs, Collectors.counting()));
+	    // Analizar estados de los datos del paciente
+	    if (patient.getClinicalDataList() != null && !patient.getClinicalDataList().isEmpty()) {
+	        System.err.println("Analizando estados de datos clínicos para el paciente: " + phoneNumber);
 
-			// Crear icono y contador para cada estado existente
-			if (statusCounts.containsKey(ClinicalStatus.URGENTE)) {
-				Span urgentIcon = createStatusIcon(ClinicalStatus.URGENTE.getDisplayName());
-				Span urgentCount = new Span(statusCounts.get(ClinicalStatus.URGENTE).toString());
-				urgentCount.addClassName("status-count");
-				statusIconsContainer.add(urgentIcon, urgentCount);
-			}
+	        // Agrupar por ClinicalStatus en lugar de String
+	        Map<ClinicalStatus, Long> statusCounts = patient.getClinicalDataList().stream()
+	                .filter(data -> data.getStatus() != null)
+	                .map(data -> {
+	                    try {
+	                        return ClinicalStatus.fromString(data.getStatus());
+	                    } catch (IllegalArgumentException e) {
+	                        System.err.println("Estado desconocido en datos clínicos: " + data.getStatus());
+	                        return null; // Puedes manejar estados desconocidos de otra manera si lo deseas
+	                    }
+	                })
+	                .filter(cs -> cs != null)
+	                .collect(Collectors.groupingBy(cs -> cs, Collectors.counting()));
 
-			if (statusCounts.containsKey(ClinicalStatus.PENDIENTE)) {
-				Span pendingIcon = createStatusIcon(ClinicalStatus.PENDIENTE.getDisplayName());
-				Span pendingCount = new Span(statusCounts.get(ClinicalStatus.PENDIENTE).toString());
-				pendingCount.addClassName("status-count");
-				statusIconsContainer.add(pendingIcon, pendingCount);
-			}
+	        System.err.println("Contadores de estado para el paciente " + phoneNumber + ": " + statusCounts);
 
-			if (statusCounts.containsKey(ClinicalStatus.EN_CURSO)) {
-				Span inProgressIcon = createStatusIcon(ClinicalStatus.EN_CURSO.getDisplayName());
-				Span inProgressCount = new Span(statusCounts.get(ClinicalStatus.EN_CURSO).toString());
-				inProgressCount.addClassName("status-count");
-				statusIconsContainer.add(inProgressIcon, inProgressCount);
-			}
+	        // Crear icono y contador para cada estado existente
+	        for (ClinicalStatus status : ClinicalStatus.values()) {
+	            if (statusCounts.containsKey(status)) {
+	                String statusDisplayName = status.getDisplayName();
+	                Span statusIcon = createStatusIcon(statusDisplayName);
+	                Span statusCount = new Span(statusCounts.get(status).toString());
+	                statusCount.addClassName("status-count");
+	                statusIconsContainer.add(statusIcon, statusCount);
+	                System.err.println("Añadido icono y contador para estado: " + statusDisplayName + " (Cantidad: " + statusCounts.get(status) + ")");
+	            }
+	        }
+	    } else {
+	        System.err.println("El paciente " + phoneNumber + " no tiene datos clínicos.");
+	    }
 
-			if (statusCounts.containsKey(ClinicalStatus.COMPLETADO)) {
-				Span completedIcon = createStatusIcon(ClinicalStatus.COMPLETADO.getDisplayName());
-				Span completedCount = new Span(statusCounts.get(ClinicalStatus.COMPLETADO).toString());
-				completedCount.addClassName("status-count");
-				statusIconsContainer.add(completedIcon, completedCount);
-			}
+	    // Crear el botón de añadir datos
+	    Button addDataButton = new Button(new Icon(VaadinIcon.PLUS));
+	    addDataButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+	    addDataButton.addClassName("add-data-button");
+	    addDataButton.getElement().setAttribute("title", "Añadir datos clínicos");
+	    System.err.println("Botón de añadir datos clínicos creado.");
 
-		}
+	    // Click listener para el botón de añadir
+	    addDataButton.addClickListener(e -> {
+	        System.err.println("Botón de añadir datos clínicos clicado para el paciente: " + phoneNumber);
+	        selectPatient(patient);
+	        highlightSelectedPatient(patientItem);
+	        openAddClinicalDataDialog();
+	    });
 
-		// Crear el botón de añadir datos
-		Button addDataButton = new Button(new Icon(VaadinIcon.PLUS));
-		addDataButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-		addDataButton.addClassName("add-data-button");
-		addDataButton.getElement().setAttribute("title", "Añadir datos clínicos");
+	    // Contenedor para iconos de estado y botón de añadir
+	    HorizontalLayout actionsContainer = new HorizontalLayout();
+	    actionsContainer.setSpacing(false); // Manejar espaciado via CSS
+	    actionsContainer.addClassName("actions-container");
+	    actionsContainer.getStyle().set("flex-grow", "0"); // Evita que el contenedor se expanda
+	    actionsContainer.getStyle().set("flex-shrink", "0"); // Evita que el contenedor se encoja
+	    actionsContainer.add(statusIconsContainer, addDataButton);
+	    actionsContainer.setAlignItems(Alignment.CENTER);
+	    actionsContainer.addClassName("actions-container");
+	    System.err.println("Contenedor de acciones creado y añadido.");
 
-		// Click listener para el botón de añadir
-		addDataButton.addClickListener(e -> {
-			selectPatient(patient);
-			highlightSelectedPatient(patientItem);
-			openAddClinicalDataDialog();
-		});
+	    // Añadir todos los componentes al ítem principal
+	    patientItem.add(avatar, patientInfo, actionsContainer);
+	    patientItem.expand(patientInfo); // Permite que patientInfo ocupe el espacio disponible
+	    System.err.println("Componentes añadidos al ítem principal del paciente.");
 
-		// Contenedor para iconos de estado y botón de añadir
-		HorizontalLayout actionsContainer = new HorizontalLayout();
-		actionsContainer.setSpacing(false); // Manejar espaciado via CSS
-		actionsContainer.addClassName("actions-container");
-		actionsContainer.getStyle().set("flex-grow", "0"); // Evita que el contenedor se expanda
-		actionsContainer.getStyle().set("flex-shrink", "0"); // Evita que el contenedor se encoja
+	    // Verificar si este paciente está seleccionado y aplicar la clase
+	    if (dataManager.getCurrentUser() != null
+	            && patient.getPhoneNumber().equals(dataManager.getCurrentUser().getPhoneNumber())) {
+	        patientItem.addClassName("patient-selected");
+	        System.err.println("Paciente actualmente seleccionado: " + phoneNumber);
+	    }
 
-		actionsContainer.add(statusIconsContainer, addDataButton);
-		actionsContainer.setAlignItems(Alignment.CENTER);
-		actionsContainer.addClassName("actions-container");
+	    // Manejar selección del paciente
+	    patientItem.addClickListener(e -> {
+	        System.err.println("Ítem de paciente clicado: " + phoneNumber);
+	        selectPatient(patient);
+	        highlightSelectedPatient(patientItem);
+	        if (patientSelectionListener != null) {
+	            patientSelectionListener.onPatientSelected(patient);
+	            System.err.println("Listener notificado sobre la selección del paciente: " + phoneNumber);
+	        }
+	    });
 
-		// Añadir todos los componentes al item principal
-		patientItem.add(avatar, patientInfo, actionsContainer);
-		patientItem.expand(patientInfo); // Permite que patientInfo ocupe el espacio disponible
-
-		// Verificar si este paciente está seleccionado y aplicar la clase
-		if (dataManager.getCurrentUser() != null
-				&& patient.getPhoneNumber().equals(dataManager.getCurrentUser().getPhoneNumber())) {
-			patientItem.addClassName("patient-selected");
-		}
-
-		// Manejar selección del paciente
-		patientItem.addClickListener(e -> {
-			selectPatient(patient);
-			highlightSelectedPatient(patientItem);
-			if (patientSelectionListener != null) {
-				patientSelectionListener.onPatientSelected(patient);
-			}
-		});
-
-		return patientItem;
+	    System.err.println("Ítem de paciente creado exitosamente para: " + phoneNumber);
+	    return patientItem;
 	}
 
 	/**
@@ -1023,26 +1031,32 @@ public class PatientlUIService {
 	 * @param patient El paciente cuyos datos han sido actualizados.
 	 */
 	public void refreshPatientItem(PatientData patient) {
-		if (patientListLayout != null && patient.getPhoneNumber() != null) {
-			// Obtener el número de teléfono sin el prefijo "+"
-			String phoneNumber = patient.getPhoneNumber().startsWith("+") ? patient.getPhoneNumber().substring(1)
-					: patient.getPhoneNumber();
-			System.out.println("Refrescando ítem del paciente con teléfono: " + phoneNumber);
+	    if (patientListLayout != null && patient.getPhoneNumber() != null) {
+	        String phoneNumber = patient.getPhoneNumber().startsWith("+") ? patient.getPhoneNumber().substring(1)
+	                : patient.getPhoneNumber();
+	        System.err.println("Refrescando ítem del paciente con teléfono: " + phoneNumber);
 
-			// Buscar el componente con el ID correspondiente
-			patientListLayout.getChildren()
-					.filter(component -> component.getId().isPresent() && component.getId().get().equals(phoneNumber))
-					.findFirst().ifPresent(component -> {
-						System.out.println("Encontrado componente a reemplazar: " + component);
-						// Crear un nuevo ítem actualizado
-						HorizontalLayout newPatientItem = createPatientListItem(patient);
-						System.out.println("Creando nuevo ítem: " + newPatientItem);
-						// Reemplazar el ítem antiguo con el nuevo
-						patientListLayout.replace(component, newPatientItem);
-					});
-		} else {
-			System.err.println("patientListLayout es null o el número de teléfono es inválido.");
-		}
+	        // Obtener el paciente actualizado desde el repository
+	        PatientData updatedPatient = dataManager.getPatientWithClinicalData(phoneNumber);
+	        if (updatedPatient == null) {
+	            System.err.println("No se pudo obtener los datos actualizados para el paciente: " + phoneNumber);
+	            return;
+	        }
+
+	        patientListLayout.getChildren()
+	                .filter(component -> component.getId().isPresent() && component.getId().get().equals(phoneNumber))
+	                .findFirst().ifPresentOrElse(component -> {
+	                    System.err.println("Encontrado componente a reemplazar: " + component);
+	                    HorizontalLayout newPatientItem = createPatientListItem(updatedPatient);
+	                    System.err.println("Creando nuevo ítem: " + newPatientItem);
+	                    patientListLayout.replace(component, newPatientItem);
+	                    System.err.println("Componente reemplazado exitosamente para el paciente: " + phoneNumber);
+	                }, () -> {
+	                    System.err.println("No se encontró ningún componente con el teléfono: " + phoneNumber);
+	                });
+	    } else {
+	        System.err.println("patientListLayout es null o el número de teléfono es inválido para el paciente: " + patient.getPhoneNumber());
+	    }
 	}
 
 	public void clearFilters() {

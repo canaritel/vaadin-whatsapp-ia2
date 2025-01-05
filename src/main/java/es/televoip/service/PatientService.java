@@ -129,12 +129,19 @@ public class PatientService {
            if (patient.getClinicalDataList() == null) {
                patient.setClinicalDataList(new ArrayList<>());
            }
-           // Asegurar que el ID esté establecido
            if (data.getId() == null) {
                data.setId(UUID.randomUUID().toString());
            }
            patient.getClinicalDataList().add(data);
            patientRepository.save(patient);
+
+           System.err.println("Añadido nuevo dato clínico a paciente: " + phoneNumber);
+
+           // Actualizar currentUser si es el paciente actual
+           if (currentUser != null && currentUser.getPhoneNumber().equals(phoneNumber)) {
+               currentUser = patientRepository.findByPhoneNumberWithClinicalData(phoneNumber).orElse(patient);
+               System.err.println("currentUser actualizado tras añadir dato clínico.");
+           }
        });
    }
 
@@ -144,20 +151,34 @@ public class PatientService {
     */
    @Transactional
    public void updateClinicalData(ClinicalData updatedData) {
-       if (currentUser == null) return;
-       
+       if (currentUser == null) {
+           System.err.println("Intento de actualizar dato clínico pero currentUser es null.");
+           return;
+       }
+
        PatientData patient = patientRepository.findByPhoneNumber(currentUser.getPhoneNumber())
            .orElseThrow(() -> new RuntimeException("Patient not found"));
 
+       boolean updated = false;
        for (int i = 0; i < patient.getClinicalDataList().size(); i++) {
            ClinicalData data = patient.getClinicalDataList().get(i);
            if (data.getCategory().getId().equals(updatedData.getCategory().getId()) 
                && data.getTitle().equals(updatedData.getTitle())) {
                patient.getClinicalDataList().set(i, updatedData);
                patientRepository.save(patient);
+               updated = true;
+               System.err.println("Dato clínico actualizado para paciente: " + currentUser.getPhoneNumber());
                break;
            }
        }
+
+       if (!updated) {
+           System.err.println("No se encontró el dato clínico a actualizar para el paciente: " + currentUser.getPhoneNumber());
+       }
+
+       // Actualizar currentUser
+       currentUser = patientRepository.findByPhoneNumberWithClinicalData(currentUser.getPhoneNumber()).orElse(currentUser);
+       System.err.println("currentUser actualizado tras actualizar dato clínico.");
    }
 
    /**
@@ -167,16 +188,29 @@ public class PatientService {
     */
    @Transactional
    public void deleteClinicalData(Category category, String title) {
-       if (currentUser == null) return;
+       if (currentUser == null) {
+           System.err.println("Intento de eliminar dato clínico pero currentUser es null.");
+           return;
+       }
 
        PatientData patient = patientRepository.findByPhoneNumber(currentUser.getPhoneNumber())
            .orElseThrow(() -> new RuntimeException("Patient not found"));
 
-       patient.getClinicalDataList().removeIf(data -> 
+       boolean removed = patient.getClinicalDataList().removeIf(data -> 
            data.getCategory().equals(category) && 
            data.getTitle().equals(title)
        );
-       patientRepository.save(patient);
+
+       if (removed) {
+           patientRepository.save(patient);
+           System.err.println("Dato clínico eliminado para paciente: " + currentUser.getPhoneNumber());
+       } else {
+           System.err.println("No se encontró el dato clínico a eliminar para paciente: " + currentUser.getPhoneNumber());
+       }
+
+       // Actualizar currentUser
+       currentUser = patientRepository.findByPhoneNumberWithClinicalData(currentUser.getPhoneNumber()).orElse(currentUser);
+       System.err.println("currentUser actualizado tras eliminar dato clínico.");
    }
 
    /**

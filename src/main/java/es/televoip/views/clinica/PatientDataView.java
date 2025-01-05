@@ -309,6 +309,7 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 	    });
 	}
 
+
 	private void filterUsers(String searchTerm) {
 		patientList.removeAll(); // Limpia la lista
 
