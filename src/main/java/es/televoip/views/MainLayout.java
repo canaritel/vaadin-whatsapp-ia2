@@ -26,6 +26,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
+import es.televoip.model.User;
 import es.televoip.views.clinica.ClinicalCategoryView;
 import es.televoip.views.clinica.PatientDataView;
 import es.televoip.views.login.LoginView;
@@ -233,14 +234,16 @@ public class MainLayout extends AppLayout {
         super.afterNavigation();
         viewTitle.setText(getCurrentPageTitle());
         
-        if (VaadinSession.getCurrent().getAttribute("nickname") == null) {
-           System.out.println("No hay sesión activa");
-           UI.getCurrent().navigate(LoginView.class);
-           toggle.setVisible(false);
-       } else {
-           toggle.setVisible(true);
-       }
+        User currentUser = (User) VaadinSession.getCurrent().getAttribute("currentUser");
+        if (currentUser == null) {
+            System.out.println("No hay sesión activa");
+            UI.getCurrent().navigate(LoginView.class);
+            toggle.setVisible(false);
+        } else {
+            toggle.setVisible(true);
+        }
     }
+
 
     private String getCurrentPageTitle() {
         return MenuConfiguration.getPageHeader(getContent()).orElse("");

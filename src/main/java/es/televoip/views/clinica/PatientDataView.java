@@ -74,12 +74,22 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 		// Añadir datos de demo
 		//addDemoData();
 
+		/*
 		// Verificar el estado de currentUser
 		if (dataManager.getCurrentUser() != null) {
 			System.out.println("currentUser está establecido por defecto: " + dataManager.getCurrentUser().getName());
 		} else {
 			System.out.println("currentUser es null al cargar la vista.");
 		}
+		*/
+		
+		 // Verificar currentUser
+	    PatientData currentUser = dataManager.getCurrentUser();
+	    if (currentUser != null) {
+	        System.out.println("Usuario actual: " + currentUser.getName());
+	    } else {
+	        System.out.println("No hay un paciente seleccionado actualmente.");
+	    }
 
 		// Configurar layout
 		setupLayout();
@@ -104,6 +114,7 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 	/**
 	 * Método que se ejecuta cuando se selecciona un paciente. Si hay una categoría seleccionada, se cargan los datos correspondientes.
 	 */
+	/*
 	private void onPatientSelected(PatientData patient) {
 		// Solo limpiar los datos, no los filtros
 		uiManager.clearPreviousData();
@@ -116,6 +127,26 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 			uiManager.loadCategoryData("all");
 		}
 	}
+	*/
+	private void onPatientSelected(PatientData patient) {
+	    if (patient == null) {
+	        System.out.println("Ningún paciente seleccionado.");
+	        messageList.removeAll(); // Limpia mensajes si no hay paciente
+	        return;
+	    }
+
+	    // Solo limpiar los datos, no los filtros
+	    uiManager.clearPreviousData();
+
+	    // Recargar datos con la categoría actual
+	    if (uiManager.getCurrentCategoryId() != null) {
+	        uiManager.loadCategoryData(uiManager.getCurrentCategoryId());
+	    } else {
+	        // Si no hay categoría seleccionada, cargar todos
+	        uiManager.loadCategoryData("all");
+	    }
+	}
+
 
 	private void setupLayout() {
 		// Panel izquierdo (lista de usuarios)
@@ -255,6 +286,7 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 		dialog.open();
 	}
 
+	/*
 	private void refreshUserList() {
 		patientList.removeAll(); // Limpia la lista
 
@@ -263,6 +295,18 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 			HorizontalLayout patientItem = uiManager.createPatientListItem(patient);
 			patientList.add(patientItem);
 		});
+	}
+	*/
+	private void refreshUserList() {
+	    patientList.removeAll(); // Limpia la lista
+
+	    dataManager.getAllPatients().forEach(patient -> {
+	        // Usa el método para cargar datos relacionados
+	        PatientData patientWithDetails = dataManager.getPatientWithClinicalData(patient.getPhoneNumber());
+
+	        HorizontalLayout patientItem = uiManager.createPatientListItem(patientWithDetails);
+	        patientList.add(patientItem);
+	    });
 	}
 
 	private void filterUsers(String searchTerm) {

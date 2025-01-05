@@ -9,13 +9,15 @@ import lombok.ToString;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Entidad que representa datos clínicos asociados a un paciente.
@@ -34,23 +36,15 @@ public class ClinicalData {
 	 * Identificador único del registro clínico.
 	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "id", updatable = false, nullable = false)
-	private Long id; // Cambia a String y usa UUID si prefieres
+	@Column(name = "id", length = 36, updatable = false, nullable = false)
+	private String id;
 
 	/**
 	 * Categoría del registro clínico.
 	 */
-	@NotBlank(message = "La categoría es obligatoria")
-	@Column(name = "category", nullable = false)
-	private String category;
-
-	/**
-	 * Subcategoría del registro clínico.
-	 */
-	@NotBlank(message = "La subcategoría es obligatoria")
-	@Column(name = "sub_category", nullable = false)
-	private String subCategory;
+	@ManyToOne(fetch = FetchType.EAGER)  // Cambiar de LAZY a EAGER
+	@JoinColumn(name = "category_id", nullable = false)
+	private Category category;
 
 	/**
 	 * Título del registro clínico.
@@ -62,6 +56,7 @@ public class ClinicalData {
 	/**
 	 * Descripción del registro clínico.
 	 */
+	@NotBlank(message = "La descripción es obligatorio")
 	@Column(name = "description", columnDefinition = "TEXT")
 	private String description;
 
@@ -83,6 +78,9 @@ public class ClinicalData {
 	 */
 	@PrePersist
 	protected void onCreate() {
+		if (this.id == null) {
+			this.id = UUID.randomUUID().toString();
+		}
 		if (this.date == null) {
 			this.date = LocalDateTime.now();
 		}

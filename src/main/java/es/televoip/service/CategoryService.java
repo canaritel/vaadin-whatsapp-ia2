@@ -16,6 +16,7 @@ import es.televoip.repository.CategoryRepository;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Transactional
 @Slf4j
 public class CategoryService {
     private final CategoryRepository categoryRepository;
@@ -216,6 +217,7 @@ public class CategoryService {
      *
      * @return Lista de categorías activas.
      */
+    @Transactional(readOnly = true)
     public List<Category> getActiveCategories() {
         return getAllCategories().stream()
             .filter(Category::isActive)

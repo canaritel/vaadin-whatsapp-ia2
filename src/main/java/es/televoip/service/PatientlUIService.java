@@ -6,8 +6,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -40,6 +43,7 @@ import es.televoip.util.MyNotification;
 import es.televoip.util.StringUtils;
 
 @Service
+@Transactional
 public class PatientlUIService {
 	private final PatientService dataManager;
 	private final CategoryService categoryManager;
@@ -74,7 +78,7 @@ public class PatientlUIService {
 
 	private static final String CATEGORY_ALL_ID = "all";
 	private static String CATEGORY_ALL_NAME;
-	
+
 	private static final String STATUS_ALL_ID = "all";
 	private static String STATUS_ALL_NAME;
 
@@ -114,6 +118,7 @@ public class PatientlUIService {
 	 * @param container El contenedor donde se mostrarán los datos.
 	 * @param data      La lista de datos clínicos a mostrar.
 	 */
+	@Transactional(readOnly = true)
 	public void displayClinicalData(VerticalLayout container, List<ClinicalData> newData, String categoryId) {
 		if (container == null)
 			return;
@@ -163,9 +168,9 @@ public class PatientlUIService {
 		// No aplicar filtros aquí
 		areFiltersCreated = true;
 	}
-	
 
 	// En ClinicalUIService
+	@Transactional(readOnly = true)
 	public void loadCategoryData(String category) {
 		if (dataManager.getCurrentUser() == null) {
 			showMessageWarning(i18nUtil.get("message.selectPatientFirst"));
@@ -231,34 +236,33 @@ public class PatientlUIService {
 	}
 
 	private ComboBox<String> createStatusFilter() {
-	    ComboBox<String> filterStatus = new ComboBox<>();
+		ComboBox<String> filterStatus = new ComboBox<>();
 
-	    // Crear la lista de estados, añadiendo "Todos" como primera opción
-	    List<String> estados = new ArrayList<>();
-	    estados.add(STATUS_ALL_NAME); // "Todos" localizado
-	    estados.addAll(Arrays.stream(ClinicalStatus.values())
-	            .map(ClinicalStatus::getDisplayName)
-	            .collect(Collectors.toList()));
+		// Crear la lista de estados, añadiendo "Todos" como primera opción
+		List<String> estados = new ArrayList<>();
+		estados.add(STATUS_ALL_NAME); // "Todos" localizado
+		estados.addAll(
+				Arrays.stream(ClinicalStatus.values()).map(ClinicalStatus::getDisplayName).collect(Collectors.toList()));
 
-	    filterStatus.setItems(estados);
-	    filterStatus.setPlaceholder(i18nUtil.get("filter.status.placeholder"));
-	    filterStatus.addClassName("custom-status-filter");
-	    filterStatus.setWidth("240px");
+		filterStatus.setItems(estados);
+		filterStatus.setPlaceholder(i18nUtil.get("filter.status.placeholder"));
+		filterStatus.addClassName("custom-status-filter");
+		filterStatus.setWidth("240px");
 
-	    // Listener para manejar la selección
-	    filterStatus.addValueChangeListener(event -> {
-	        String newValue = event.getValue();
-	        if (newValue == null || STATUS_ALL_NAME.equals(newValue)) {
-	            currentStatusFilter = STATUS_ALL_ID; // "all"
-	            filterStatus.removeClassName("filter-active");
-	        } else {
-	            currentStatusFilter = newValue;
-	            filterStatus.addClassName("filter-active");
-	        }
-	        applyFilters(messageList);
-	    });
+		// Listener para manejar la selección
+		filterStatus.addValueChangeListener(event -> {
+			String newValue = event.getValue();
+			if (newValue == null || STATUS_ALL_NAME.equals(newValue)) {
+				currentStatusFilter = STATUS_ALL_ID; // "all"
+				filterStatus.removeClassName("filter-active");
+			} else {
+				currentStatusFilter = newValue;
+				filterStatus.addClassName("filter-active");
+			}
+			applyFilters(messageList);
+		});
 
-	    return filterStatus;
+		return filterStatus;
 	}
 
 	private TextField createSearchField() {
@@ -293,6 +297,7 @@ public class PatientlUIService {
 	 *
 	 * @param container El contenedor donde se mostrarán los datos.
 	 */
+	@Transactional(readOnly = true)
 	private void applyFilters(VerticalLayout container) {
 		// Normalizar el término de búsqueda una sola vez
 		String normalizedSearchTerm = StringUtils.removeAccents(currentSearchTerm.toLowerCase());
@@ -307,16 +312,10 @@ public class PatientlUIService {
 					|| (cd.getDescription() != null
 							&& StringUtils.removeAccents(cd.getDescription().toLowerCase()).contains(normalizedSearchTerm));
 			return matchesStatus && matchesSearch;
-		}).sorted(Comparator
-				// Primero, ordenar por prioridad de estado (ascendente)
-				.comparingInt((ClinicalData cd) -> getStatusPriority(cd.getStatus()))
-				// Luego, por fecha (descendente)
+		}).sorted(Comparator.comparingInt((ClinicalData cd) -> getStatusPriority(cd.getStatus()))
 				.thenComparing(ClinicalData::getDate, Comparator.nullsLast(Comparator.reverseOrder()))
-				// Finalmente, por displayOrder de la categoría (ascendente)
-				.thenComparing(cd -> {
-					return categoryManager.getCategoryById(cd.getCategory()).map(Category::getDisplayOrder)
-							.orElse(Integer.MAX_VALUE);
-				})).collect(Collectors.toList());
+				.thenComparing(cd -> cd.getCategory().getDisplayOrder())) // Ahora podemos acceder directamente
+				.collect(Collectors.toList());
 
 		// Crear una línea de tiempo
 		VerticalLayout timeline = new VerticalLayout();
@@ -391,7 +390,8 @@ public class PatientlUIService {
 				Div categoryInfo = new Div();
 				categoryInfo.addClassName("timeline-category-info");
 
-				categoryManager.getCategoryById(item.getCategory()).ifPresent(category -> {
+				// Ahora accedemos directamente a la categoría
+				Optional.ofNullable(item.getCategory()).ifPresent(category -> {
 					try {
 						VaadinIcon vaadinIcon = VaadinIcon.valueOf(category.getIcon());
 						Icon icon = vaadinIcon.create();
@@ -405,14 +405,12 @@ public class PatientlUIService {
 
 						categoryInfo.add(categoryContent);
 
-						// Agregar clase específica de la categoría al layout del evento para el color de fondo
 						String categoryClass = "category-" + category.getId().toLowerCase();
 						eventLayout.addClassName(categoryClass);
 					} catch (IllegalArgumentException e) {
 						System.err.println("Icono inválido para categoría: " + category.getIcon());
 					}
 				});
-
 				eventLayout.add(statusIcon, eventDetails, categoryInfo);
 				timeline.add(eventLayout);
 			});
@@ -613,7 +611,7 @@ public class PatientlUIService {
 		categoryCombo.setPlaceholder("Seleccione una categoría");
 
 		// Preseleccionar la categoría actual
-		categoryManager.getCategoryById(data.getCategory()).ifPresent(categoryCombo::setValue);
+		Optional.ofNullable(data.getCategory()).ifPresent(categoryCombo::setValue);
 
 		// Opcional: Deshabilitar la selección de categoría si no deseas que sea editable
 		// categoryCombo.setEnabled(false); // Descomenta esta línea si quieres que la categoría no sea editable
@@ -638,7 +636,7 @@ public class PatientlUIService {
 			data.setDate(datePicker.getValue().atStartOfDay());
 
 			if (selectedCategory != null) {
-				data.setCategory(selectedCategory.getId()); // Actualizar la categoría
+				data.setCategory(selectedCategory); // Ahora asignamos la entidad completa
 			}
 
 			// Guardar los cambios en el backend
@@ -683,6 +681,7 @@ public class PatientlUIService {
 			HorizontalLayout confirmButtons = new HorizontalLayout();
 
 			Button confirmDelete = new Button("Eliminar", e -> {
+				// Ahora pasamos la entidad Category completa
 				dataManager.deleteClinicalData(data.getCategory(), data.getTitle());
 				showMessage("Dato clínico eliminado.");
 				confirmDialog.close();
@@ -693,18 +692,18 @@ public class PatientlUIService {
 				if (currentPatient != null) {
 					refreshPatientItem(currentPatient);
 
-					// Recargar los datos clínicos en la línea de tiempo usando la categoría actual
-					if (messageList != null && currentCategoryId != null) { // Verificar que currentCategoryId esté definido
+					if (messageList != null && currentCategoryId != null) {
 						List<ClinicalData> updatedData;
 						if ("all".equals(currentCategoryId)) {
 							updatedData = dataManager.getAllClinicalData(currentPatient.getPhoneNumber());
 						} else {
 							updatedData = dataManager.getClinicalData(currentPatient.getPhoneNumber(), currentCategoryId);
 						}
-						displayClinicalData(messageList, updatedData, currentCategoryId); // Pasar categoryId
+						displayClinicalData(messageList, updatedData, currentCategoryId);
 					}
 				}
 			});
+
 			confirmDelete.addThemeVariants(ButtonVariant.LUMO_ERROR);
 			Button cancelDelete = new Button("Cancelar", e -> confirmDialog.close());
 
@@ -811,7 +810,8 @@ public class PatientlUIService {
 			ClinicalStatus selectedStatus = statusCombo.getValue();
 
 			// Crear el nuevo dato clínico usando el ID interno de la categoría y el estado del enum
-			ClinicalData newData = ClinicalData.builder().category(selectedCategory.getId()) // Usar ID interno
+			ClinicalData newData = ClinicalData.builder().category(selectedCategory) // Ahora pasamos el objeto Category completo
+					//.categoryId(selectedCategory.getId())  // Ya no usamos esto
 					.title(titleField.getValue()).description(descriptionArea.getValue())
 					.status(selectedStatus.getDisplayName()).date(datePicker.getValue().atStartOfDay()).build();
 
@@ -861,6 +861,7 @@ public class PatientlUIService {
 	 * @param patient El paciente para el cual crear el ítem.
 	 * @return Un HorizontalLayout que representa el ítem del paciente.
 	 */
+	@Transactional(readOnly = true)
 	public HorizontalLayout createPatientListItem(PatientData patient) {
 		// Layout principal del item
 		HorizontalLayout patientItem = new HorizontalLayout();
@@ -905,11 +906,10 @@ public class PatientlUIService {
 		statusIconsContainer.addClassName("status-icons-container");
 
 		// Analizar estados de los datos del paciente
-		//if (patient.getData() != null && !patient.getData().isEmpty()) {
 		if (patient.getClinicalDataList() != null && !patient.getClinicalDataList().isEmpty()) {
 			// Agrupar por ClinicalStatus en lugar de String
-			Map<ClinicalStatus, Long> statusCounts = patient.getClinicalDataList().stream().filter(data -> data.getStatus() != null)
-					.map(data -> {
+			Map<ClinicalStatus, Long> statusCounts = patient.getClinicalDataList().stream()
+					.filter(data -> data.getStatus() != null).map(data -> {
 						try {
 							return ClinicalStatus.fromString(data.getStatus());
 						} catch (IllegalArgumentException e) {
@@ -1046,12 +1046,12 @@ public class PatientlUIService {
 	}
 
 	public void clearFilters() {
-	    if (filterLayout != null) {
-	        searchField.clear();
-	        statusFilter.setValue(STATUS_ALL_NAME); // Establecer "Todos" localizado
-	        currentSearchTerm = "";
-	        currentStatusFilter = STATUS_ALL_ID; // "all"
-	    }
+		if (filterLayout != null) {
+			searchField.clear();
+			statusFilter.setValue(STATUS_ALL_NAME); // Establecer "Todos" localizado
+			currentSearchTerm = "";
+			currentStatusFilter = STATUS_ALL_ID; // "all"
+		}
 	}
 
 	public void clearPreviousData() {
