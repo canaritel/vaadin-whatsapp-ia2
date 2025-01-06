@@ -205,18 +205,13 @@
 /* Icono de estado con estilo de tarjeta */
 .timeline-status-icon {
     display: flex;
-    align-items: center;
     gap: 6px;
-    flex-shrink: 0;
-    margin-top: 4px;
-    margin-left: 8px;
-    margin-right: 8px;
-    padding: 6px 12px;
     min-width: 140px;
-    border-radius: 8px;
-    background-color: rgba(0, 123, 255, 0.1); /* Fondo azul claro */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
-    transition: background-color 0.3s ease, transform 0.3s ease;
+    width: 180px; /* Ancho fijo para la sección de categoría */
+    margin: 0;
+    padding: 12px;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Icono dentro del contenedor de estado */
@@ -233,11 +228,12 @@
 }
 
 /* Efecto hover */
+/*
 .timeline-status-icon:hover {
     background-color: rgba(0, 123, 255, 0.2);
     transform: translateY(-2px);
 }
-
+*/
 
 /* ==========================================================================
    5. Categorías y Estados
