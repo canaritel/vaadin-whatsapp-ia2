@@ -17,11 +17,21 @@ public abstract class MyNotification {
    public static void show(String message, Position position, NotificationVariant color, int duration) {
       showNotification(message, position, color, duration, VaadinIcon.CHECK_CIRCLE);
    }
+   
+   public static void show(String message) {
+      showNotification(message, Position.TOP_CENTER, NotificationVariant.LUMO_SUCCESS, 3000, VaadinIcon.CHECK_CIRCLE);
+   }
+   
+   public static void showError(String message) {
+      showNotification(message, Position.TOP_CENTER, NotificationVariant.LUMO_ERROR, 3000, VaadinIcon.WARNING);
+   }
 
    public static void showWarning(String message, Position position, NotificationVariant color, int duration) {
       showNotification(message, position, color, duration, VaadinIcon.EXCLAMATION_CIRCLE);
    }
 
+   
+   
    private static void showNotification(String message, Position position, NotificationVariant color, int duration, VaadinIcon icon) {
       Notification notification = new Notification(message, duration);
       notification.setPosition(position);

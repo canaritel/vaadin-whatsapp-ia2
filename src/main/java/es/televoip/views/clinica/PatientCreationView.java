@@ -4,7 +4,6 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
@@ -57,40 +56,52 @@ public class PatientCreationView extends VerticalLayout implements Translatable 
     }
 
     private void createToolbar() {
-        toolbar = new HorizontalLayout();
-        toolbar.setWidthFull();
-        toolbar.setSpacing(true);
-        toolbar.setPadding(false);
-        toolbar.addClassName("toolbar"); // Clase CSS definida en clinica-chat.css
+       toolbar = new HorizontalLayout();
+       toolbar.setWidthFull();
+       toolbar.setSpacing(true);
+       toolbar.setPadding(false);
+       toolbar.addClassName("toolbar");
 
-        // Campo de búsqueda
-        filterField = new TextField();
-        filterField.setPlaceholder("Buscar paciente...");
-        filterField.setPrefixComponent(VaadinIcon.SEARCH.create());
-        filterField.setClearButtonVisible(true);
-        filterField.setValueChangeMode(ValueChangeMode.LAZY);
-        filterField.addClassName("custom-status-filter"); // Clase CSS definida en clinica-chat.css
-        filterField.setWidth("240px"); // Puedes ajustar o eliminar esta línea según los estilos CSS
-        
-        // Listener para agregar o quitar clase activa
-        filterField.addValueChangeListener(event -> {
-            if (!event.getValue().isEmpty()) {
-                filterField.addClassName("filter-active");
-            } else {
-                filterField.removeClassName("filter-active");
-            }
+       // Campo de búsqueda
+       filterField = new TextField();
+       filterField.setPlaceholder(i18nUtil.get("filter.search.placeholder"));
+       filterField.setPrefixComponent(VaadinIcon.SEARCH.create());
+       filterField.setClearButtonVisible(true);
+       filterField.setValueChangeMode(ValueChangeMode.LAZY);
+       filterField.addClassName("custom-status-filter");
+       filterField.setWidth("240px");
 
-            updateList(event.getValue());
-        });
+       // Botón de añadir
+       Button addButton = new Button(i18nUtil.get("button.newPatient"), VaadinIcon.PLUS.create());
+       addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+       addButton.addClickListener(e -> showPatientForm(new PatientData()));
 
-        // Botón de añadir
-        Button addButton = new Button("Nuevo Paciente", VaadinIcon.PLUS.create());
-        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addButton.addClickListener(e -> showPatientForm(new PatientData()));
+       // Botones de filtro con estados
+       Button viewActiveButton = new Button(i18nUtil.get("button.viewActive"));
+       Button viewSuspendedButton = new Button(i18nUtil.get("button.viewSuspended"));
+       
+       viewActiveButton.addClassName("filter-button");
+       viewSuspendedButton.addClassName("filter-button");
+       
+       // Establecer estado inicial
+       viewActiveButton.addClassName("active");
+       
+       viewActiveButton.addClickListener(e -> {
+           updateList("");
+           viewActiveButton.addClassName("active");
+           viewSuspendedButton.removeClassName("active");
+       });
+       
+       viewSuspendedButton.addClickListener(e -> {
+           showSuspendedPatients();
+           viewSuspendedButton.addClassName("active");
+           viewActiveButton.removeClassName("active");
+       });
 
-        toolbar.add(filterField, addButton);
-        toolbar.setAlignItems(Alignment.CENTER);
-    }
+       // Añadir todos los componentes
+       toolbar.add(filterField, addButton, viewActiveButton, viewSuspendedButton);
+       toolbar.setAlignItems(Alignment.CENTER);
+   }
 
     private void createGrid() {
         grid = new Grid<>(PatientData.class, false);
@@ -243,43 +254,129 @@ public class PatientCreationView extends VerticalLayout implements Translatable 
             return false;
         }
     }
-
+    
     private void deletePatient(PatientData patient) {
-        Dialog confirmDialog = new Dialog();
-        confirmDialog.setHeaderTitle("Confirmar eliminación");
+       try {
+           // Obtener el paciente con datos clínicos cargados
+           PatientData fullPatient = patientService.getPatientWithClinicalData(patient.getPhoneNumber());
+           
+           if (fullPatient.getClinicalDataList() != null && !fullPatient.getClinicalDataList().isEmpty()) {
+               showSuspendDialog(fullPatient);
+           } else {
+               showDeleteDialog(fullPatient);
+           }
+       } catch (Exception e) {
+           MyNotification.showError("Error al procesar la solicitud: " + e.getMessage());
+       }
+   }
 
-        VerticalLayout dialogLayout = new VerticalLayout();
-        dialogLayout.add(new Text("¿Estás seguro de que deseas eliminar al paciente " 
-                                + patient.getName() + "?"));
-        dialogLayout.setPadding(true);
-        dialogLayout.setSpacing(true);
-        dialogLayout.addClassName("dialog-layout"); // Clase CSS para estilizar el diálogo
+    private void showSuspendDialog(PatientData patient) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Suspender Paciente");
 
-        Button deleteButton = new Button("Eliminar", e -> {
-            patientService.deletePatient(patient.getId());
-            updateList("");
-            confirmDialog.close();
-            Notification.show("Paciente eliminado correctamente", 
-                            3000, Position.TOP_CENTER)
-                      .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        Text message = new Text(i18nUtil.get("message.suspendPacient"));
+
+        Button suspendButton = new Button("Suspender", e -> {
+            try {
+                patientService.suspendPatient(patient.getId());
+                dialog.close();
+                refreshGrid();
+                MyNotification.show("Paciente suspendido correctamente");
+            } catch (Exception ex) {
+                MyNotification.showError("Error al suspender el paciente");
+            }
+        });
+
+        Button cancelButton = new Button("Cancelar", e -> dialog.close());
+        
+        // Añadir botones y mensaje al diálogo
+        dialog.add(new VerticalLayout(message, 
+            new HorizontalLayout(cancelButton, suspendButton)));
+        dialog.open();
+    }
+
+    private void showSuspendedPatients() {
+       grid.setItems(patientService.getAllSuspendedPatients());
+       toolbar.getChildren()
+           .filter(component -> component instanceof Button)
+           .map(component -> (Button) component)
+           .forEach(button -> {
+               if (button.getText().equals(i18nUtil.get("button.viewSuspended"))) {
+                   button.addClassName("active");
+               } else if (button.getText().equals(i18nUtil.get("button.viewActive"))) {
+                   button.removeClassName("active");
+               }
+           });
+   }
+
+   private void updateList(String filterText) {
+       if (filterText != null && !filterText.isEmpty()) {
+           grid.setItems(patientService.findActiveByNameOrPhoneOrEmail(filterText));
+       } else {
+           grid.setItems(patientService.getAllActivePatients());
+       }
+       
+       toolbar.getChildren()
+           .filter(component -> component instanceof Button)
+           .map(component -> (Button) component)
+           .forEach(button -> {
+               if (button.getText().equals(i18nUtil.get("button.viewActive"))) {
+                   button.addClassName("active");
+               } else if (button.getText().equals(i18nUtil.get("button.viewSuspended"))) {
+                   button.removeClassName("active");
+               }
+           });
+   }
+    
+    /**
+     * Muestra el diálogo de confirmación para eliminar un paciente
+     */
+    private void showDeleteDialog(PatientData patient) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Confirmar eliminación");
+
+        // Contenido del diálogo
+        Text message = new Text("¿Estás seguro de que deseas eliminar al paciente " + 
+                              patient.getName() + "?");
+
+        // Botones
+        Button deleteButton = new Button("Eliminar", event -> {
+            try {
+                patientService.deletePatient(patient.getId());
+                dialog.close();
+                refreshGrid();
+                MyNotification.show("Paciente eliminado correctamente");
+            } catch (Exception e) {
+                MyNotification.showError("Error al eliminar el paciente: " + e.getMessage());
+            }
         });
         deleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
 
-        Button cancelButton = new Button("Cancelar", e -> confirmDialog.close());
+        Button cancelButton = new Button("Cancelar", e -> dialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        dialogLayout.add(new HorizontalLayout(cancelButton, deleteButton));
-        dialogLayout.addClassName("dialog-footer"); // Clase CSS para estilizar el footer
+        // Layout para los botones
+        HorizontalLayout buttons = new HorizontalLayout(cancelButton, deleteButton);
+        buttons.setJustifyContentMode(JustifyContentMode.END);
 
-        confirmDialog.add(dialogLayout);
-        confirmDialog.open();
+        // Añadir componentes al diálogo
+        VerticalLayout dialogLayout = new VerticalLayout(message, buttons);
+        dialogLayout.setPadding(true);
+        dialogLayout.setSpacing(true);
+
+        dialog.add(dialogLayout);
+        dialog.open();
     }
 
-    private void updateList(String filterText) {
-        if (filterText != null && !filterText.isEmpty()) {
-            grid.setItems(patientService.findByNameOrPhoneOrEmail(filterText));
+    /**
+     * Actualiza la grid con los datos más recientes según el filtro actual
+     */
+    private void refreshGrid() {
+        String currentFilter = filterField.getValue();
+        if (currentFilter != null && !currentFilter.isEmpty()) {
+            grid.setItems(patientService.findActiveByNameOrPhoneOrEmail(currentFilter));
         } else {
-            grid.setItems(patientService.getAllPatients());
+            grid.setItems(patientService.getAllActivePatients());
         }
     }
 

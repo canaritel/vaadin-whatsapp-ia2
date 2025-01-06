@@ -573,6 +573,26 @@
     }
 }
 
+/* Botones de la view Paciente */
+/* Estilo base para los botones de filtro */
+.filter-button {
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    padding: 4px 12px;
+}
+
+/* Estilo para el botón activo */
+.filter-button.active {
+    background-color: #0080c0;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+    font-weight: 500;
+}
+
+/* Efecto hover para los botones no activos */
+.filter-button:not(.active):hover {
+    background-color: var(--lumo-contrast-5pct);
+}
 
 /* ==========================================================================
    8. Elementos de UI Comunes

@@ -2,18 +2,9 @@ package es.televoip.views.clinica;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -21,14 +12,12 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 import es.televoip.service.CategoryService;
 import es.televoip.service.PatientService;
 import es.televoip.service.PatientlUIService;
 import es.televoip.util.I18nUtil;
 import es.televoip.util.LocaleChangeNotifier;
-import es.televoip.util.MyNotification;
 import es.televoip.util.Translatable;
 import es.televoip.views.MainLayout;
 
@@ -243,7 +232,6 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 	    });
 	}
 
-
 	private void filterUsers(String searchTerm) {
 	    patientList.removeAll(); // Limpia la lista
 
@@ -263,37 +251,7 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 	        patientList.add(noResults);
 	    }
 	}
-
-	private void createClinicalPanel() {
-		VerticalLayout clinicalPanel = new VerticalLayout();
-		clinicalPanel.addClassName("clinical-panel");
-		clinicalPanel.setWidth("30%");
-
-		// Resumen clínico
-		H3 title = new H3(i18nUtil.get("clinical.info.title"));
-
-		// Secciones de información
-		createInfoSection(clinicalPanel, i18nUtil.get("clinical.info.lastVisit"), "10/12/2024");
-		createInfoSection(clinicalPanel, i18nUtil.get("clinical.info.nextAppointment"), "15/12/2024");
-		createInfoSection(clinicalPanel, i18nUtil.get("clinical.info.currentTreatment"),
-				i18nUtil.get("clinical.info.currentTreatmentDetail"));
-
-		clinicalPanel.add(title);
-	}
-
-	private void createInfoSection(VerticalLayout container, String label, String value) {
-		Div section = new Div();
-		section.addClassName("info-section");
-
-		Span labelSpan = new Span(label);
-		labelSpan.addClassName("info-label");
-
-		Span valueSpan = new Span(value);
-		valueSpan.addClassName("info-value");
-
-		section.add(labelSpan, valueSpan);
-		container.add(section);
-	}
+	
 
 	/**
 	 * Implementación del método de la interfaz Translatable. Este método se llama cuando cambia el idioma para actualizar los textos de la UI.

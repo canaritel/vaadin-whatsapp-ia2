@@ -69,6 +69,10 @@ public class PatientData {
        		  joinColumns = @JoinColumn(name = "patient_id"),
        		  inverseJoinColumns = @JoinColumn(name = "clinical_data_id"))
    private List<ClinicalData> clinicalDataList = new ArrayList<>();
+	
+	@Builder.Default
+	@Column(name = "status", nullable = false)
+   private String status = "active"; // Nuevo campo para el estado del paciente
 
 	@Column(name = "created_at", updatable = false)
 	private LocalDateTime createdAt;
