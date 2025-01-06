@@ -1,6 +1,7 @@
 package es.televoip.views.clinica;
 
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -67,7 +68,7 @@ public class PatientCreationView extends VerticalLayout implements Translatable 
         filterField.setPlaceholder("Buscar paciente...");
         filterField.setPrefixComponent(VaadinIcon.SEARCH.create());
         filterField.setClearButtonVisible(true);
-        filterField.setValueChangeMode(ValueChangeMode.EAGER);
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
         filterField.addClassName("custom-status-filter"); // Clase CSS definida en clinica-chat.css
         filterField.setWidth("240px"); // Puedes ajustar o eliminar esta línea según los estilos CSS
         
@@ -282,8 +283,17 @@ public class PatientCreationView extends VerticalLayout implements Translatable 
         }
     }
 
-	@Override
-	public void updateTexts() {
-		// Implementación para la internacionalización si es necesario
-	}
+    /**
+ 	 * Implementación del método de la interfaz Translatable. Este método se llama cuando cambia el idioma para actualizar los textos de la UI.
+ 	 */
+ 	@Override
+ 	public void updateTexts() {
+ 		// Actualizar el título de la página
+ 		getUI().ifPresent(ui -> ui.getPage().setTitle(i18nUtil.get("page.title.patients")));
+
+ 		// Actualizar textos de los componentes existentes
+ 		// Recargar la página para aplicar las traducciones
+	   UI.getCurrent().getPage().reload();
+ 	}
+ 	
 }

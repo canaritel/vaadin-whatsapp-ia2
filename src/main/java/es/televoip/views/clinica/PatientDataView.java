@@ -2,6 +2,8 @@ package es.televoip.views.clinica;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -15,6 +17,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -192,25 +195,33 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 		userListLayout.addClassName("user-list-panel");
 		userListLayout.setWidth("35%");
 		userListLayout.setHeight("100%");
-		userListLayout.setPadding(false);
+		userListLayout.setPadding(true);
 		userListLayout.setSpacing(true);
 
 		// Header con búsqueda
 		HorizontalLayout header = new HorizontalLayout();
-		header.addClassName("user-panel-header");
+		//header.addClassName("user-panel-header");
 		header.setWidthFull();
 
 		TextField searchField = new TextField();
 		searchField.setPlaceholder(i18nUtil.get("filter.search.placeholder"));
-		searchField.getStyle().set("margin-left", "14px"); // Añade margen izquierdo
-		searchField.addValueChangeListener(e -> filterUsers(e.getValue())); // Usa el filtro correctamente
+		searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
+		searchField.setClearButtonVisible(true);
+		searchField.setValueChangeMode(ValueChangeMode.LAZY);
+		searchField.addClassName("custom-status-filter"); 
+		
+		 // Listener para agregar o quitar clase activa
+		searchField.addValueChangeListener(event -> {
+          if (!event.getValue().isEmpty()) {
+         	 searchField.addClassName("filter-active");
+          } else {
+         	 searchField.removeClassName("filter-active");
+          }
 
-		// Botón con icono para añadir paciente
-		Button addUserButton = new Button(new Icon(VaadinIcon.USER_CARD), e -> openAddUserDialog());
-		addUserButton.setClassName("icon-button"); // Clase CSS para estilos opcionales
-		addUserButton.getElement().setProperty("title", i18nUtil.get("tooltip.addClient")); // Tooltip al pasar el ratón
+          filterUsers(event.getValue());
+      });
 
-		header.add(searchField, addUserButton); // Añadir botón al header
+		header.add(searchField); // Añadir botón al header
 		header.setFlexGrow(1, searchField); // El campo de búsqueda ocupa el espacio restante
 
 		userListLayout.add(header);
@@ -219,84 +230,7 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 		// Mostrar todos los usuarios iniciales
 		refreshUserList();
 	}
-
-	private void openAddUserDialog() {
-		// Crear el diálogo
-		Dialog dialog = new Dialog();
-		dialog.setHeaderTitle(i18nUtil.get("dialog.addPatient.title"));
-		dialog.setWidth("500px"); // Ancho ajustado
-		dialog.setCloseOnOutsideClick(false); // Deshabilitar cierre al hacer clic fuera
-		dialog.setCloseOnEsc(false); // Deshabilitar cierre con la tecla Escape
-
-		// Campos del formulario (solo Nombre y Teléfono)
-		TextField nameField = new TextField(i18nUtil.get("field.name"));
-		nameField.setWidthFull(); // Ocupa todo el ancho
-
-		TextField phoneField = new TextField(i18nUtil.get("field.phone"));
-		phoneField.setWidthFull(); // Ocupa todo el ancho
-
-		// Botón para guardar
-		Button saveButton = new Button(i18nUtil.get("button.save"), e -> {
-			String name = nameField.getValue();
-			String phone = phoneField.getValue();
-
-			// Validaciones básicas
-			if (name.trim().isEmpty() || phone.trim().isEmpty()) {
-				showMessageWarning(i18nUtil.get("notification.allFieldsRequired"));
-				return;
-			}
-
-			// Validar unicidad del teléfono
-			if (dataManager.hasPatient(phone)) {
-				showMessageWarning(i18nUtil.get("notification.phoneAlreadyExists"));
-				return;
-			}
-
-			// Crear una lista vacía de datos clínicos
-			List<ClinicalData> clinicalData = new ArrayList<>();
-
-			// Añadir el paciente al dataManager con datos clínicos vacíos
-			dataManager.addDemoPatient(phone, name, clinicalData);
-
-			// Refrescar la lista de usuarios
-			refreshUserList();
-
-			// Cerrar el diálogo
-			dialog.close();
-
-			// Opcional: Mostrar una notificación de éxito
-			showMessage(i18nUtil.get("notification.patientAdded"));
-		});
-
-		saveButton.addClassName("save-button");
-		saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY); // Estilizar como primario
-
-		// Botón para cerrar
-		Button closeButton = new Button(i18nUtil.get("button.close"), e -> dialog.close());
-		closeButton.addClassName("close-button");
-
-		// Contenedor del formulario
-		VerticalLayout formLayout = new VerticalLayout(nameField, phoneField,
-				new HorizontalLayout(saveButton, closeButton) // Botones en un layout horizontal
-		);
-		formLayout.setPadding(true);
-		formLayout.setSpacing(true);
-
-		dialog.add(formLayout);
-		dialog.open();
-	}
-
-	/*
-	private void refreshUserList() {
-		patientList.removeAll(); // Limpia la lista
-
-		// Agrega todos los pacientes actuales de dataManager
-		dataManager.getAllPatients().forEach(patient -> {
-			HorizontalLayout patientItem = uiManager.createPatientListItem(patient);
-			patientList.add(patientItem);
-		});
-	}
-	*/
+	
 	private void refreshUserList() {
 	    patientList.removeAll(); // Limpia la lista
 
@@ -311,24 +245,23 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 
 
 	private void filterUsers(String searchTerm) {
-		patientList.removeAll(); // Limpia la lista
+	    patientList.removeAll(); // Limpia la lista
 
-		// Filtra los usuarios cuyo nombre o teléfono coincida con el término de búsqueda
-		dataManager.getAllPatients().stream()
-				.filter(patient -> patient.getName().toLowerCase().contains(searchTerm.toLowerCase())
-						|| patient.getPhoneNumber().contains(searchTerm))
-				.forEach(patient -> {
-					HorizontalLayout patientItem = uiManager.createPatientListItem(patient);
-					patientList.add(patientItem);
-				});
+	    // Utilizar el método de servicio para buscar pacientes
+	    List<PatientData> filteredPatients = dataManager.findByNameOrPhoneOrEmail(searchTerm);
 
-		// Si no hay coincidencias, mostrar mensaje
-		if (patientList.getComponentCount() == 0) {
-			Div noResults = new Div();
-			noResults.setText(i18nUtil.get("message.noMatches"));
-			noResults.addClassName("no-results"); // Clase CSS para estilos
-			patientList.add(noResults);
-		}
+	    filteredPatients.forEach(patient -> {
+	        HorizontalLayout patientItem = uiManager.createPatientListItem(patient);
+	        patientList.add(patientItem);
+	    });
+
+	    // Si no hay coincidencias, mostrar mensaje
+	    if (filteredPatients.isEmpty()) {
+	        Div noResults = new Div();
+	        noResults.setText(i18nUtil.get("message.noMatches"));
+	        noResults.addClassName("no-results"); // Clase CSS para estilos
+	        patientList.add(noResults);
+	    }
 	}
 
 	private void createClinicalPanel() {
@@ -362,14 +295,6 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 		container.add(section);
 	}
 
-	private void showMessage(String message) {
-		MyNotification.show(message, Notification.Position.MIDDLE, NotificationVariant.LUMO_SUCCESS, 3000);
-	}
-
-	private void showMessageWarning(String message) {
-		MyNotification.showWarning(message, Notification.Position.MIDDLE, NotificationVariant.LUMO_WARNING, 3000);
-	}
-
 	/**
 	 * Implementación del método de la interfaz Translatable. Este método se llama cuando cambia el idioma para actualizar los textos de la UI.
 	 */
@@ -380,8 +305,12 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 
 		// Actualizar textos de los componentes existentes
 		// Por ejemplo, recrear los paneles para actualizar los textos dinámicamente
-		createUserPanel();
-		createChatPanel();
-		createClinicalPanel();
+		//createUserPanel();
+		//createChatPanel();
+		//createClinicalPanel();
+		
+		// Recargar la página para aplicar las traducciones
+	    UI.getCurrent().getPage().reload();
 	}
+	
 }

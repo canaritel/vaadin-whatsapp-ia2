@@ -113,7 +113,7 @@ public class PatientService {
     * Obtiene el usuario actual del sistema
     * @return Usuario actual o null si no hay ninguno establecido
     */
-   @Transactional
+   @Transactional(readOnly = true) 
    public PatientData getCurrentUser() {
        return currentUser;
    }
