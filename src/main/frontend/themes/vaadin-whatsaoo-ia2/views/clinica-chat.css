@@ -278,10 +278,12 @@
 }
 
 /* Efecto hover para mejorar la interactividad */
+/*
 .timeline-category-info:hover {
     opacity: 1;
     transform: scale(1.01);
 }
+*/
 
 /* Estados Clínicos */
 .status-urgente {
