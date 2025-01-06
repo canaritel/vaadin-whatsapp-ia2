@@ -135,12 +135,9 @@ public class PatientService {
            patient.getClinicalDataList().add(data);
            patientRepository.save(patient);
 
-           System.err.println("Añadido nuevo dato clínico a paciente: " + phoneNumber);
-
            // Actualizar currentUser si es el paciente actual
            if (currentUser != null && currentUser.getPhoneNumber().equals(phoneNumber)) {
                currentUser = patientRepository.findByPhoneNumberWithClinicalData(phoneNumber).orElse(patient);
-               System.err.println("currentUser actualizado tras añadir dato clínico.");
            }
        });
    }
@@ -152,7 +149,6 @@ public class PatientService {
    @Transactional
    public void updateClinicalData(ClinicalData updatedData) {
        if (currentUser == null) {
-           System.err.println("Intento de actualizar dato clínico pero currentUser es null.");
            return;
        }
 
@@ -167,7 +163,6 @@ public class PatientService {
                patient.getClinicalDataList().set(i, updatedData);
                patientRepository.save(patient);
                updated = true;
-               System.err.println("Dato clínico actualizado para paciente: " + currentUser.getPhoneNumber());
                break;
            }
        }
@@ -178,7 +173,6 @@ public class PatientService {
 
        // Actualizar currentUser
        currentUser = patientRepository.findByPhoneNumberWithClinicalData(currentUser.getPhoneNumber()).orElse(currentUser);
-       System.err.println("currentUser actualizado tras actualizar dato clínico.");
    }
 
    /**
@@ -189,7 +183,6 @@ public class PatientService {
    @Transactional
    public void deleteClinicalData(Category category, String title) {
        if (currentUser == null) {
-           System.err.println("Intento de eliminar dato clínico pero currentUser es null.");
            return;
        }
 
@@ -203,14 +196,12 @@ public class PatientService {
 
        if (removed) {
            patientRepository.save(patient);
-           System.err.println("Dato clínico eliminado para paciente: " + currentUser.getPhoneNumber());
        } else {
            System.err.println("No se encontró el dato clínico a eliminar para paciente: " + currentUser.getPhoneNumber());
        }
 
        // Actualizar currentUser
        currentUser = patientRepository.findByPhoneNumberWithClinicalData(currentUser.getPhoneNumber()).orElse(currentUser);
-       System.err.println("currentUser actualizado tras eliminar dato clínico.");
    }
 
    /**

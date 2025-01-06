@@ -52,7 +52,7 @@ public class PatientlUIService {
 	private VerticalLayout patientListLayout; // Nuevo atributo
 
 	// Variables para mantener el estado de los filtros
-	private String currentStatusFilter = "Todos";
+	private String currentStatusFilter = "all";
 	private String currentSearchTerm = "";
 
 	// Componentes de filtro
@@ -201,7 +201,10 @@ public class PatientlUIService {
 		List<Category> activeCategories = new ArrayList<>(categoryManager.getActiveCategories());
 
 		// Crear la categoría ficticia "Todos"
-		Category allCategory = Category.builder().id(CATEGORY_ALL_ID).name(CATEGORY_ALL_NAME).isActive(true) // Puede ser activo o no, según prefieras
+		Category allCategory = Category.builder()
+				.id(CATEGORY_ALL_ID)
+				.name(CATEGORY_ALL_NAME)
+				.isActive(true) // Puede ser activo o no, según prefieras
 				.build();
 
 		// Prepend "Todos" al inicio de la lista de categorías
@@ -236,33 +239,52 @@ public class PatientlUIService {
 	}
 
 	private ComboBox<String> createStatusFilter() {
-		ComboBox<String> filterStatus = new ComboBox<>();
+	    ComboBox<String> filterStatus = new ComboBox<>();
 
-		// Crear la lista de estados, añadiendo "Todos" como primera opción
-		List<String> estados = new ArrayList<>();
-		estados.add(STATUS_ALL_NAME); // "Todos" localizado
-		estados.addAll(
-				Arrays.stream(ClinicalStatus.values()).map(ClinicalStatus::getDisplayName).collect(Collectors.toList()));
+	    // Crear la lista de estados, añadiendo "Todos" como primera opción
+	    List<String> estados = new ArrayList<>();
+	    estados.add(STATUS_ALL_NAME); // "Todos" localizado
+	    estados.addAll(
+	            Arrays.stream(ClinicalStatus.values())
+	                  .map(ClinicalStatus::getDisplayName)
+	                  .collect(Collectors.toList())
+	    );
 
-		filterStatus.setItems(estados);
-		filterStatus.setPlaceholder(i18nUtil.get("filter.status.placeholder"));
-		filterStatus.addClassName("custom-status-filter");
-		filterStatus.setWidth("240px");
+	    filterStatus.setItems(estados);
+	    filterStatus.setPlaceholder(i18nUtil.get("filter.status.placeholder"));
+	    filterStatus.addClassName("custom-status-filter");
+	    filterStatus.setWidth("240px");
 
-		// Listener para manejar la selección
-		filterStatus.addValueChangeListener(event -> {
-			String newValue = event.getValue();
-			if (newValue == null || STATUS_ALL_NAME.equals(newValue)) {
-				currentStatusFilter = STATUS_ALL_ID; // "all"
-				filterStatus.removeClassName("filter-active");
-			} else {
-				currentStatusFilter = newValue;
-				filterStatus.addClassName("filter-active");
-			}
-			applyFilters(messageList);
-		});
+	    // Permitir la selección nula para manejar "Todos" como selección nula
+	    filterStatus.setAllowCustomValue(false);
+	    //filterStatus.setEmptySelectionAllowed(true);
+	    filterStatus.setClearButtonVisible(true); // Opcional: mostrar botón para limpiar la selección
 
-		return filterStatus;
+	    // Listener para manejar la selección
+	    filterStatus.addValueChangeListener(event -> {
+	        String newValue = event.getValue();
+	        if (newValue == null || STATUS_ALL_NAME.equals(newValue)) {
+	            currentStatusFilter = "all"; // "all" representa "Todos"
+	            filterStatus.removeClassName("filter-active");
+	            System.err.println("Filtro de estado establecido a 'all' (Todos).");
+	        } else {
+	            currentStatusFilter = newValue;
+	            filterStatus.addClassName("filter-active");
+	            System.err.println("Filtro de estado establecido a: " + currentStatusFilter);
+	        }
+
+	        if (messageList != null && dataManager.getCurrentUser() != null) {
+	            loadCategoryData(currentStatusFilter);
+	            System.err.println("Cargando datos clínicos para el filtro de estado: " + currentStatusFilter);
+	        }
+	    });
+
+	    // Establecer la selección inicial a "Todos" de forma interna
+	    // No seleccionamos nada en el ComboBox para mostrar el placeholder
+	    filterStatus.setValue(null);
+	    System.err.println("Filtro de estado inicializado con 'Todos' (no seleccionado).");
+
+	    return filterStatus;
 	}
 
 	private TextField createSearchField() {
@@ -304,8 +326,12 @@ public class PatientlUIService {
 
 		// Filtrar los datos clínicos
 		List<ClinicalData> filteredData = allData.stream().filter(cd -> {
-			boolean matchesStatus = currentStatusFilter.equals("Todos")
-					|| (cd.getStatus() != null && cd.getStatus().equalsIgnoreCase(currentStatusFilter));
+			//boolean matchesStatus = currentStatusFilter.equals("Todos")
+			//		|| (cd.getStatus() != null && cd.getStatus().equalsIgnoreCase(currentStatusFilter));
+			
+			boolean matchesStatus = currentStatusFilter.equals("all")
+			        || (cd.getStatus() != null && cd.getStatus().equalsIgnoreCase(currentStatusFilter));
+			
 			boolean matchesSearch = currentSearchTerm.isEmpty()
 					|| (cd.getTitle() != null
 							&& StringUtils.removeAccents(cd.getTitle().toLowerCase()).contains(normalizedSearchTerm))
@@ -863,8 +889,6 @@ public class PatientlUIService {
 	 */
 	@Transactional(readOnly = true)
 	public HorizontalLayout createPatientListItem(PatientData patient) {
-	    System.err.println("Creando ítem de paciente para: " + patient.getName() + " (" + patient.getPhoneNumber() + ")");
-
 	    // Layout principal del ítem
 	    HorizontalLayout patientItem = new HorizontalLayout();
 	    patientItem.addClassName("patient-item");
@@ -876,8 +900,7 @@ public class PatientlUIService {
 	    String phoneNumber = patient.getPhoneNumber().startsWith("+") ? patient.getPhoneNumber().substring(1)
 	            : patient.getPhoneNumber();
 	    patientItem.setId(phoneNumber);
-	    System.err.println("Asignado ID al ítem del paciente: " + phoneNumber);
-
+	  
 	    // Avatar o imagen del paciente
 	    Div avatar = new Div();
 	    avatar.addClassName("patient-avatar");
@@ -885,8 +908,7 @@ public class PatientlUIService {
 	                            ? patient.getName().substring(0, 1).toUpperCase() 
 	                            : "?";
 	    avatar.setText(avatarInitial);
-	    System.err.println("Avatar configurado con la inicial: " + avatarInitial);
-
+	   
 	    // Información del paciente
 	    VerticalLayout patientInfo = new VerticalLayout();
 	    patientInfo.setPadding(false);
@@ -896,13 +918,12 @@ public class PatientlUIService {
 	    // Nombre del paciente
 	    Span name = new Span(patient.getName());
 	    name.addClassName("patient-name");
-	    System.err.println("Nombre del paciente añadido: " + patient.getName());
+	    System.out.println("Nombre del paciente añadido: " + patient.getName());
 
 	    // Teléfono del paciente
 	    Span phone = new Span(patient.getPhoneNumber());
 	    phone.addClassName("patient-phone");
-	    System.err.println("Teléfono del paciente añadido: " + patient.getPhoneNumber());
-
+	    
 	    patientInfo.add(name, phone);
 
 	    // Contenedor para los iconos de estado
@@ -912,11 +933,10 @@ public class PatientlUIService {
 	    statusIconsContainer.getStyle().set("white-space", "nowrap");
 	    statusIconsContainer.setAlignItems(Alignment.CENTER);
 	    statusIconsContainer.addClassName("status-icons-container");
-	    System.err.println("Contenedor de iconos de estado creado.");
-
+	   
 	    // Analizar estados de los datos del paciente
 	    if (patient.getClinicalDataList() != null && !patient.getClinicalDataList().isEmpty()) {
-	        System.err.println("Analizando estados de datos clínicos para el paciente: " + phoneNumber);
+	        System.out.println("Analizando estados de datos clínicos para el paciente: " + phoneNumber);
 
 	        // Agrupar por ClinicalStatus en lugar de String
 	        Map<ClinicalStatus, Long> statusCounts = patient.getClinicalDataList().stream()
@@ -932,7 +952,7 @@ public class PatientlUIService {
 	                .filter(cs -> cs != null)
 	                .collect(Collectors.groupingBy(cs -> cs, Collectors.counting()));
 
-	        System.err.println("Contadores de estado para el paciente " + phoneNumber + ": " + statusCounts);
+	        System.out.println("Contadores de estado para el paciente " + phoneNumber + ": " + statusCounts);
 
 	        // Crear icono y contador para cada estado existente
 	        for (ClinicalStatus status : ClinicalStatus.values()) {
@@ -942,7 +962,6 @@ public class PatientlUIService {
 	                Span statusCount = new Span(statusCounts.get(status).toString());
 	                statusCount.addClassName("status-count");
 	                statusIconsContainer.add(statusIcon, statusCount);
-	                System.err.println("Añadido icono y contador para estado: " + statusDisplayName + " (Cantidad: " + statusCounts.get(status) + ")");
 	            }
 	        }
 	    } else {
@@ -954,11 +973,9 @@ public class PatientlUIService {
 	    addDataButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
 	    addDataButton.addClassName("add-data-button");
 	    addDataButton.getElement().setAttribute("title", "Añadir datos clínicos");
-	    System.err.println("Botón de añadir datos clínicos creado.");
-
+	   
 	    // Click listener para el botón de añadir
 	    addDataButton.addClickListener(e -> {
-	        System.err.println("Botón de añadir datos clínicos clicado para el paciente: " + phoneNumber);
 	        selectPatient(patient);
 	        highlightSelectedPatient(patientItem);
 	        openAddClinicalDataDialog();
@@ -973,32 +990,25 @@ public class PatientlUIService {
 	    actionsContainer.add(statusIconsContainer, addDataButton);
 	    actionsContainer.setAlignItems(Alignment.CENTER);
 	    actionsContainer.addClassName("actions-container");
-	    System.err.println("Contenedor de acciones creado y añadido.");
-
+	   
 	    // Añadir todos los componentes al ítem principal
 	    patientItem.add(avatar, patientInfo, actionsContainer);
 	    patientItem.expand(patientInfo); // Permite que patientInfo ocupe el espacio disponible
-	    System.err.println("Componentes añadidos al ítem principal del paciente.");
-
+	    
 	    // Verificar si este paciente está seleccionado y aplicar la clase
-	    if (dataManager.getCurrentUser() != null
-	            && patient.getPhoneNumber().equals(dataManager.getCurrentUser().getPhoneNumber())) {
+	    if (dataManager.getCurrentUser() != null && patient.getPhoneNumber().equals(dataManager.getCurrentUser().getPhoneNumber())) {
 	        patientItem.addClassName("patient-selected");
-	        System.err.println("Paciente actualmente seleccionado: " + phoneNumber);
 	    }
 
 	    // Manejar selección del paciente
 	    patientItem.addClickListener(e -> {
-	        System.err.println("Ítem de paciente clicado: " + phoneNumber);
 	        selectPatient(patient);
 	        highlightSelectedPatient(patientItem);
 	        if (patientSelectionListener != null) {
 	            patientSelectionListener.onPatientSelected(patient);
-	            System.err.println("Listener notificado sobre la selección del paciente: " + phoneNumber);
 	        }
 	    });
 
-	    System.err.println("Ítem de paciente creado exitosamente para: " + phoneNumber);
 	    return patientItem;
 	}
 
@@ -1034,7 +1044,7 @@ public class PatientlUIService {
 	    if (patientListLayout != null && patient.getPhoneNumber() != null) {
 	        String phoneNumber = patient.getPhoneNumber().startsWith("+") ? patient.getPhoneNumber().substring(1)
 	                : patient.getPhoneNumber();
-	        System.err.println("Refrescando ítem del paciente con teléfono: " + phoneNumber);
+	        System.out.println("Refrescando ítem del paciente con teléfono: " + phoneNumber);
 
 	        // Obtener el paciente actualizado desde el repository
 	        PatientData updatedPatient = dataManager.getPatientWithClinicalData(phoneNumber);
@@ -1046,11 +1056,8 @@ public class PatientlUIService {
 	        patientListLayout.getChildren()
 	                .filter(component -> component.getId().isPresent() && component.getId().get().equals(phoneNumber))
 	                .findFirst().ifPresentOrElse(component -> {
-	                    System.err.println("Encontrado componente a reemplazar: " + component);
 	                    HorizontalLayout newPatientItem = createPatientListItem(updatedPatient);
-	                    System.err.println("Creando nuevo ítem: " + newPatientItem);
 	                    patientListLayout.replace(component, newPatientItem);
-	                    System.err.println("Componente reemplazado exitosamente para el paciente: " + phoneNumber);
 	                }, () -> {
 	                    System.err.println("No se encontró ningún componente con el teléfono: " + phoneNumber);
 	                });
