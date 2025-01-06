@@ -330,12 +330,7 @@ public class PatientlUIService {
 	 */
 	@Transactional(readOnly = true)
 	private void applyFilters(VerticalLayout container) {
-		 System.out.println("=== Aplicando filtros ===");
-	    System.out.println("Datos disponibles: " + (allData != null ? allData.size() : 0));
-	    System.out.println("Filtro de estado actual: " + currentStatusFilter);
-	    System.out.println("Término de búsqueda actual: " + currentSearchTerm);
-
-	    // Normalizar el término de búsqueda una sola vez
+		 // Normalizar el término de búsqueda una sola vez
 	    String normalizedSearchTerm = StringUtils.removeAccents(currentSearchTerm.toLowerCase());
 
 	    // Filtrar los datos clínicos
