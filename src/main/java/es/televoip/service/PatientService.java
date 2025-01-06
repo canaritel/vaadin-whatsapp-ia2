@@ -2,6 +2,7 @@ package es.televoip.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -240,6 +241,87 @@ public class PatientService {
     */
    public boolean hasPatient(String phoneNumber) {
        return patientRepository.existsByPhoneNumber(phoneNumber);
+   }
+   
+   /**
+    * Elimina un paciente por su ID.
+    *
+    * @param patientId ID del paciente a eliminar.
+    * @throws RuntimeException si el paciente no existe.
+    */
+   @Transactional
+   public void deletePatient(String patientId) {
+       if (!patientRepository.existsById(patientId)) {
+           throw new RuntimeException("Paciente con ID " + patientId + " no existe.");
+       }
+       patientRepository.deleteById(patientId);
+       
+       // Si el paciente eliminado es el usuario actual, limpiar la referencia
+       if (currentUser != null && currentUser.getId().equals(patientId)) {
+           currentUser = null;
+       }
+   }
+
+   /**
+    * Busca pacientes cuyo nombre, número de teléfono o correo electrónico contengan el texto de filtro.
+    *
+    * @param filterText Texto de búsqueda para filtrar pacientes.
+    * @return Lista de pacientes que coinciden con el criterio de búsqueda.
+    */
+   @Transactional(readOnly = true)
+   public List<PatientData> findByNameOrPhoneOrEmail(String filterText) {
+       if (filterText == null || filterText.trim().isEmpty()) {
+           return patientRepository.findAllWithClinicalData();
+       }
+       return patientRepository.findByNameOrPhoneOrEmail(filterText);
+   }
+   
+   /**
+    * Guarda (crea o actualiza) un paciente en la base de datos.
+    *
+    * @param patient El objeto PatientData a guardar.
+    * @return El objeto PatientData guardado.
+    */
+   @Transactional
+   public PatientData savePatient(PatientData patient) {
+       if (patient.getId() == null || patient.getId().isEmpty()) {
+           // Crear un nuevo paciente
+           patient.setId(UUID.randomUUID().toString());
+           System.out.println("Creando un nuevo paciente:" + patient.getName());
+       } else {
+           // Actualizar un paciente existente
+      	  System.out.println("Actualizando paciente existente: " + patient.getName());
+       }
+       
+       // Validaciones adicionales (si es necesario)
+       // Por ejemplo, verificar si el correo electrónico ya existe para otro paciente
+       if (patient.getEmail() != null && patientRepository.existsByEmail(patient.getEmail())) {
+           Optional<PatientData> existingPatient = patientRepository.findByEmail(patient.getEmail());
+           if (existingPatient.isPresent() && !existingPatient.get().getId().equals(patient.getId())) {
+               throw new RuntimeException("El correo electrónico ya está en uso por otro paciente.");
+           }
+       }
+
+       // Validar unicidad del número de teléfono
+       if (patient.getPhoneNumber() != null && patientRepository.existsByPhoneNumber(patient.getPhoneNumber())) {
+           Optional<PatientData> existingPatient = patientRepository.findByPhoneNumber(patient.getPhoneNumber());
+           if (existingPatient.isPresent() && !existingPatient.get().getId().equals(patient.getId())) {
+               throw new RuntimeException("El número de teléfono ya está en uso por otro paciente.");
+           }
+       }
+
+       // Guardar el paciente
+       PatientData savedPatient = patientRepository.save(patient);
+       System.out.println("Paciente guardado correctamente: " + savedPatient.getName());
+
+       // Actualizar el usuario actual si es necesario
+       if (currentUser != null && currentUser.getId().equals(savedPatient.getId())) {
+           currentUser = patientRepository.findByPhoneNumberWithClinicalData(savedPatient.getPhoneNumber())
+               .orElse(savedPatient);
+           System.out.println("Usuario actual actualizado: " + currentUser.getName());
+       }
+
+       return savedPatient;
    }
    
 }

@@ -18,12 +18,10 @@ public interface PatientRepository extends JpaRepository<PatientData, String> {
 
 	Optional<PatientData> findByEmail(String email);
 
-	//Optional<PatientData> findByPhoneNumber(String phoneNumber);
+	// Uso de JOIN FETCH //////////////////////////
 	@Query("SELECT p FROM PatientData p LEFT JOIN FETCH p.clinicalDataList WHERE p.phoneNumber = :phoneNumber")
 	Optional<PatientData> findByPhoneNumber(@Param("phoneNumber") String phoneNumber);
-	
-	
-	// Uso de JOIN FETCH //////////////////////////
+			
    @Query("SELECT DISTINCT p FROM PatientData p " +
          "LEFT JOIN FETCH p.clinicalDataList cd " +
          "LEFT JOIN FETCH cd.category c")
@@ -34,5 +32,19 @@ public interface PatientRepository extends JpaRepository<PatientData, String> {
          "LEFT JOIN FETCH cd.category cat " + // Importante: JOIN FETCH con category
          "WHERE p.phoneNumber = :phoneNumber")
    Optional<PatientData> findByPhoneNumberWithClinicalData(@Param("phoneNumber") String phoneNumber);
+   
+   /**
+    * Busca pacientes cuyo nombre, número de teléfono o correo electrónico contengan el texto de filtro.
+    *
+    * @param filterText Texto de búsqueda para filtrar pacientes.
+    * @return Lista de pacientes que coinciden con el criterio de búsqueda.
+    */
+   @Query("SELECT DISTINCT p FROM PatientData p " +
+          "LEFT JOIN FETCH p.clinicalDataList cd " +
+          "LEFT JOIN FETCH cd.category c " +
+          "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :filterText, '%')) " +
+          "OR LOWER(p.phoneNumber) LIKE LOWER(CONCAT('%', :filterText, '%')) " +
+          "OR LOWER(p.email) LIKE LOWER(CONCAT('%', :filterText, '%'))")
+   List<PatientData> findByNameOrPhoneOrEmail(@Param("filterText") String filterText);
 
 }

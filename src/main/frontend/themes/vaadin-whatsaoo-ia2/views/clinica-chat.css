@@ -542,15 +542,11 @@
     margin-right: -12px;
 }
 
-custom-status-filter {
-    margin: 0;
-    min-width: 160px;
-}
-
 /* Estilo por defecto para el filtro de estado */
 .custom-status-filter {
+	margin: 0;
+    min-width: 160px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-    
     border-radius: 4px; /* Esquinas redondeadas */
     padding: 4px 8px; /* Espaciado interno */
 }
