@@ -42,7 +42,7 @@ public class ClinicalData {
 	/**
 	 * Categoría del registro clínico.
 	 */
-	@ManyToOne(fetch = FetchType.EAGER)  // Cambiar de LAZY a EAGER
+	@ManyToOne(fetch = FetchType.LAZY)  // Cambiar de LAZY a EAGER
 	@JoinColumn(name = "category_id", nullable = false)
 	private Category category;
 
@@ -72,6 +72,15 @@ public class ClinicalData {
 	 */
 	@Column(name = "date", nullable = false)
 	private LocalDateTime date;
+	
+	@Override
+   public String toString() {
+        return "ClinicalData{" +
+            "id='" + id + '\'' +
+            ", title='" + title + '\'' +
+            // No incluir category para evitar lazy loading
+            '}';
+   }
 
 	/**
 	 * Método que se ejecuta antes de insertar la entidad en la base de datos. Establece el campo 'date' si es nulo.

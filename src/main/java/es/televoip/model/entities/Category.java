@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
@@ -28,9 +29,9 @@ public class Category {
 
 	private boolean isActive;
 
-	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-	@JoinColumn(name = "category_id", nullable = false)
-	private List<SubCategory> subCategories;
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+   @JoinColumn(name = "category_id", nullable = false)
+   private List<SubCategory> subCategories;
 
 	private int displayOrder;
 

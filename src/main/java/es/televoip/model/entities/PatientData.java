@@ -22,7 +22,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.PreUpdate;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 
 /**
  * Entidad que representa a un paciente en el sistema.
@@ -66,8 +65,10 @@ public class PatientData {
 
 	@Builder.Default
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-	@JoinTable(name = "patient_clinical_data", joinColumns = @JoinColumn(name = "patient_id"), inverseJoinColumns = @JoinColumn(name = "clinical_data_id"))
-	private List<ClinicalData> clinicalDataList = new ArrayList<>();
+   @JoinTable(name = "patient_clinical_data",
+       		  joinColumns = @JoinColumn(name = "patient_id"),
+       		  inverseJoinColumns = @JoinColumn(name = "clinical_data_id"))
+   private List<ClinicalData> clinicalDataList = new ArrayList<>();
 
 	@Column(name = "created_at", updatable = false)
 	private LocalDateTime createdAt;

@@ -921,7 +921,7 @@ public class PatientlUIService {
 	 * @param patient El paciente para el cual crear el ítem.
 	 * @return Un HorizontalLayout que representa el ítem del paciente.
 	 */
-	@Transactional(readOnly = true)
+	@Transactional(readOnly = true) // Para consultas
 	public HorizontalLayout createPatientListItem(PatientData patient) {
 	    // Layout principal del ítem
 	    HorizontalLayout patientItem = new HorizontalLayout();

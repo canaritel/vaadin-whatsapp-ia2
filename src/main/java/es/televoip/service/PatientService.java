@@ -51,7 +51,7 @@ public class PatientService {
     * Obtiene todos los pacientes registrados en el sistema
     * @return Lista de todos los pacientes
     */
-   @Transactional
+   @Transactional(readOnly = true) 
    public List<PatientData> getAllPatients() {
        return patientRepository.findAll();
    }
@@ -61,19 +61,19 @@ public class PatientService {
     * @param phoneNumber Número de teléfono del paciente
     * @return Lista de datos clínicos del paciente o lista vacía si no existe
     */
-   @Transactional
+   @Transactional(readOnly = true) 
    public List<ClinicalData> getAllClinicalData(String phoneNumber) {
-       return patientRepository.findByPhoneNumber(phoneNumber)
+       return patientRepository.findByPhoneNumberWithClinicalData(phoneNumber)
            .map(PatientData::getClinicalDataList)
            .orElse(new ArrayList<>());
    }
-
+   
    /**
     * Busca un paciente por su número de teléfono
     * @param phoneNumber Número de teléfono del paciente
     * @return PatientData si existe, null si no se encuentra
     */
-   @Transactional
+   @Transactional(readOnly = true) 
    public PatientData getPatient(String phoneNumber) {
        return patientRepository.findByPhoneNumber(phoneNumber).orElse(null);
    }
@@ -84,7 +84,7 @@ public class PatientService {
     * @param category ID de la categoría a filtrar
     * @return Lista filtrada de datos clínicos
     */
-   @Transactional
+   @Transactional(readOnly = true)
    public List<ClinicalData> getClinicalData(String phoneNumber, String category) {
        return patientRepository.findByPhoneNumber(phoneNumber)
            .map(patient -> patient.getClinicalDataList().stream()
@@ -92,10 +92,10 @@ public class PatientService {
                .collect(Collectors.toList()))
            .orElse(new ArrayList<>());
    }
-   
-   @Transactional
+     
+   @Transactional(readOnly = true) 
    public PatientData getPatientWithClinicalData(String phoneNumber) {
-       return patientRepository.findByPhoneNumberWithClinicalData(phoneNumber)
+   	 return patientRepository.findByPhoneNumberWithClinicalData(phoneNumber)
                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
    }
 

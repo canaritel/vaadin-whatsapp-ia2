@@ -13,10 +13,23 @@ import es.televoip.model.entities.Category;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, String> {
 
+	/*
 	@Query("SELECT c FROM Category c LEFT JOIN FETCH c.subCategories")
 	List<Category> findAllWithSubCategories();
 
 	@Query("SELECT c FROM Category c LEFT JOIN FETCH c.subCategories WHERE c.id = :id")
 	Optional<Category> findByIdWithSubCategories(@Param("id") String id);
+	*/
+	
+	// Uso de JOIN FETCH /////////////////////////////////////////////////////
+	@Query("SELECT DISTINCT c FROM Category c " +
+          "LEFT JOIN FETCH c.subCategories " +
+          "ORDER BY c.displayOrder")
+   List<Category> findAllWithSubCategories();
+
+   @Query("SELECT DISTINCT c FROM Category c " +
+          "LEFT JOIN FETCH c.subCategories " +
+          "WHERE c.id = :id")
+   Optional<Category> findByIdWithSubCategories(@Param("id") String id);
 
 }
