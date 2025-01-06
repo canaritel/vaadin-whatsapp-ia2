@@ -43,7 +43,6 @@ import es.televoip.util.MyNotification;
 import es.televoip.util.StringUtils;
 
 @Service
-@Transactional
 public class PatientlUIService {
 	private final PatientService dataManager;
 	private final CategoryService categoryManager;
@@ -158,7 +157,7 @@ public class PatientlUIService {
 	    // Filtro de estado
 	    statusFilter = createStatusFilter();
 
-	    filterLayout.add(categoryFilter, statusFilter, searchField);
+	    filterLayout.add(statusFilter, searchField, categoryFilter);
 
 	    if (container.getComponentCount() > 0) {
 	        container.addComponentAsFirst(filterLayout);
@@ -331,6 +330,11 @@ public class PatientlUIService {
 	 */
 	@Transactional(readOnly = true)
 	private void applyFilters(VerticalLayout container) {
+		 System.out.println("=== Aplicando filtros ===");
+	    System.out.println("Datos disponibles: " + (allData != null ? allData.size() : 0));
+	    System.out.println("Filtro de estado actual: " + currentStatusFilter);
+	    System.out.println("Término de búsqueda actual: " + currentSearchTerm);
+
 	    // Normalizar el término de búsqueda una sola vez
 	    String normalizedSearchTerm = StringUtils.removeAccents(currentSearchTerm.toLowerCase());
 
@@ -669,34 +673,35 @@ public class PatientlUIService {
 			data.setDescription(descriptionArea.getValue());
 			data.setStatus(selectedStatus.getDisplayName());
 			data.setDate(datePicker.getValue().atStartOfDay());
+			data.setCategory(selectedCategory);
 
-			if (selectedCategory != null) {
-				data.setCategory(selectedCategory); // Ahora asignamos la entidad completa
-			}
+			//if (selectedCategory != null) {
+			//	data.setCategory(selectedCategory); // Ahora asignamos la entidad completa
+			//}
 
 			// Guardar los cambios en el backend
 			dataManager.updateClinicalData(data);
 
 			// Refrescar el ítem del paciente
-			PatientData currentPatient = dataManager.getCurrentUser();
-			if (currentPatient != null) {
-				refreshPatientItem(currentPatient);
+		   PatientData currentPatient = dataManager.getCurrentUser();
+		   if (currentPatient != null) {
+		        currentPatient = dataManager.getPatientWithClinicalData(currentPatient.getPhoneNumber());
+		        refreshPatientItem(currentPatient);
 
-				// Obtener los datos actualizados según la categoría actual
-				List<ClinicalData> updatedData;
-				if ("all".equals(currentCategoryId)) {
-					updatedData = dataManager.getAllClinicalData(currentPatient.getPhoneNumber());
-				} else {
-					updatedData = dataManager.getClinicalData(currentPatient.getPhoneNumber(), currentCategoryId);
-				}
+		        // Recargar los datos del timeline
+		        clearPreviousData(); // Limpiar datos actuales
+		        List<ClinicalData> updatedData;
+		        if ("all".equals(currentCategoryId)) {
+		            updatedData = dataManager.getAllClinicalData(currentPatient.getPhoneNumber());
+		        } else {
+		            updatedData = dataManager.getClinicalData(currentPatient.getPhoneNumber(), currentCategoryId);
+		        }
+		        this.allData = new ArrayList<>(updatedData); // Actualizar allData
+		        applyFilters(messageList); // Volver a aplicar filtros
+		    }
 
-				// Re-renderizar la línea de tiempo con los datos actualizados
-				displayClinicalData(messageList, updatedData, currentCategoryId);
-			}
-
-			showMessage("Datos actualizados exitosamente.");
-
-			dialog.close();
+		    dialog.close();
+		    showMessage("Datos actualizados exitosamente.");
 		});
 
 		saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -716,27 +721,52 @@ public class PatientlUIService {
 			HorizontalLayout confirmButtons = new HorizontalLayout();
 
 			Button confirmDelete = new Button("Eliminar", e -> {
-				// Ahora pasamos la entidad Category completa
-				dataManager.deleteClinicalData(data.getCategory(), data.getTitle());
-				showMessage("Dato clínico eliminado.");
-				confirmDialog.close();
-				dialog.close();
+			    System.out.println("=== Iniciando eliminación desde UI ===");
+			    System.out.println("Datos a eliminar:");
+			    System.out.println("- Categoría: " + data.getCategory().getName());
+			    System.out.println("- Título: " + data.getTitle());
 
-				// Refrescar el ítem del paciente
-				PatientData currentPatient = dataManager.getCurrentUser();
-				if (currentPatient != null) {
-					refreshPatientItem(currentPatient);
+			    dataManager.deleteClinicalData(data.getCategory(), data.getTitle());
 
-					if (messageList != null && currentCategoryId != null) {
-						List<ClinicalData> updatedData;
-						if ("all".equals(currentCategoryId)) {
-							updatedData = dataManager.getAllClinicalData(currentPatient.getPhoneNumber());
-						} else {
-							updatedData = dataManager.getClinicalData(currentPatient.getPhoneNumber(), currentCategoryId);
-						}
-						displayClinicalData(messageList, updatedData, currentCategoryId);
-					}
-				}
+			    // Refrescar el ítem del paciente
+			    PatientData currentPatient = dataManager.getCurrentUser();
+			    if (currentPatient != null) {
+			        System.out.println("Actualizando UI después de eliminación");
+			        
+			        // Obtener datos actualizados
+			        currentPatient = dataManager.getPatientWithClinicalData(currentPatient.getPhoneNumber());
+			        System.out.println("Datos actualizados obtenidos para: " + currentPatient.getName());
+			        System.out.println("Cantidad de datos clínicos: " + 
+			                          currentPatient.getClinicalDataList().size());
+
+			        refreshPatientItem(currentPatient);
+			        System.out.println("Item del paciente actualizado en la UI");
+
+			        // Recargar timeline
+			        System.out.println("Recargando timeline...");
+			        clearPreviousData();
+			        
+			        List<ClinicalData> updatedData;
+			        if ("all".equals(currentCategoryId)) {
+			            System.out.println("Cargando todos los datos clínicos");
+			            updatedData = dataManager.getAllClinicalData(currentPatient.getPhoneNumber());
+			        } else {
+			            System.out.println("Cargando datos de categoría: " + currentCategoryId);
+			            updatedData = dataManager.getClinicalData(currentPatient.getPhoneNumber(), currentCategoryId);
+			        }
+			        
+			        System.out.println("Datos obtenidos para timeline: " + updatedData.size());
+			        this.allData = new ArrayList<>(updatedData);
+			        applyFilters(messageList);
+			        System.out.println("Timeline actualizado");
+			    } else {
+			        System.out.println("ERROR: No hay paciente actual seleccionado");
+			    }
+
+			    confirmDialog.close();
+			    dialog.close();
+			    showMessage("Dato clínico eliminado exitosamente.");
+			    System.out.println("=== Proceso de UI completado ===");
 			});
 
 			confirmDelete.addThemeVariants(ButtonVariant.LUMO_ERROR);

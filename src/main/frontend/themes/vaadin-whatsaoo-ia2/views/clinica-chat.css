@@ -527,6 +527,7 @@
     margin-left: 20px;
     margin-bottom: 6px;
     gap: 16px; /* Espacio entre elementos */
+    justify-content: space-between; /* Distribuir espacio entre componentes */
 }
 
 .filter-title {
