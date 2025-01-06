@@ -172,7 +172,6 @@ public class PatientlUIService {
 	    // Aplicar los filtros actuales
 	    if (dataManager.getCurrentUser() != null) {
 	        applyFilters(container);
-	        System.err.println("Aplicando filtros iniciales al crear el layout.");
 	    }
 	}
 
@@ -182,7 +181,6 @@ public class PatientlUIService {
 	public void loadCategoryData(String category) {
 	    if (dataManager.getCurrentUser() == null) {
 	        showMessageWarning(i18nUtil.get("message.selectPatientFirst"));
-	        System.err.println("Intento de cargar datos clínicos sin seleccionar un paciente.");
 	        return;
 	    }
 
@@ -198,7 +196,6 @@ public class PatientlUIService {
 
 	    // Aplicar los filtros actuales (estado y búsqueda)
 	    applyFilters(messageList);
-	    System.err.println("Aplicando filtros después de cargar datos por categoría: " + category);
 	}
 
 	private ComboBox<Category> createCategoryFilter() {
@@ -208,6 +205,7 @@ public class PatientlUIService {
 	    filterCategory.setPlaceholder(i18nUtil.get("filter.category.placeholder"));
 	    filterCategory.addClassName("custom-status-filter");
 	    filterCategory.setWidth("240px");
+	    filterCategory.setClearButtonVisible(true); //mostrar botón para limpiar la selección
 
 	    // Crear lista de categorías activas
 	    List<Category> activeCategories = new ArrayList<>(categoryManager.getActiveCategories());
@@ -240,7 +238,6 @@ public class PatientlUIService {
 
 	        if (dataManager.getCurrentUser() != null) {
 	            loadCategoryData(currentCategoryId);
-	            System.err.println("Cargando datos clínicos para el filtro de categoría: " + currentCategoryId);
 	        }
 	    });
 
@@ -248,8 +245,7 @@ public class PatientlUIService {
 	    currentCategoryId = "all";
 	    loadCategoryData(currentCategoryId);
 	    filterCategory.setValue(null); // Mostrar el placeholder
-	    System.err.println("Filtro de categoría inicializado con 'all' (no seleccionado en ComboBox).");
-
+	    
 	    return filterCategory;
 	}
 
@@ -282,16 +278,13 @@ public class PatientlUIService {
 	        if (newValue == null || STATUS_ALL_NAME.equals(newValue)) {
 	            currentStatusFilter = "all"; // "all" representa "Todos"
 	            filterStatus.removeClassName("filter-active");
-	            System.err.println("Filtro de estado establecido a 'all' (Todos).");
 	        } else {
 	            currentStatusFilter = newValue;
 	            filterStatus.addClassName("filter-active");
-	            System.err.println("Filtro de estado establecido a: " + currentStatusFilter);
 	        }
 
 	        if (dataManager.getCurrentUser() != null) {
 	            applyFilters(messageList);
-	            System.err.println("Aplicando filtros para el filtro de estado: " + currentStatusFilter);
 	        }
 	    });
 
@@ -299,7 +292,6 @@ public class PatientlUIService {
 	    currentStatusFilter = "all";
 	    applyFilters(messageList);
 	    filterStatus.setValue(null); // Mostrar el placeholder
-	    System.err.println("Filtro de estado inicializado con 'all' (no seleccionado en ComboBox).");
 
 	    return filterStatus;
 	}
@@ -358,12 +350,6 @@ public class PatientlUIService {
 	            .thenComparing(cd -> cd.getCategory().getDisplayOrder())) // Ahora podemos acceder directamente
 	            .collect(Collectors.toList());
 
-	    System.err.println("Aplicando filtros: " + 
-	        "Categoría=" + currentCategoryId + 
-	        ", Estado=" + currentStatusFilter + 
-	        ", Búsqueda='" + currentSearchTerm + "'" + 
-	        ". Datos filtrados: " + filteredData.size());
-
 	    // Crear una línea de tiempo
 	    VerticalLayout timeline = new VerticalLayout();
 	    timeline.addClassName("clinical-timeline");
@@ -376,7 +362,6 @@ public class PatientlUIService {
 	        emptyMessage.setText("No hay registros clínicos para mostrar.");
 	        emptyMessage.addClassName("empty-message");
 	        timeline.add(emptyMessage);
-	        System.err.println("No hay datos clínicos después de aplicar filtros.");
 	    } else {
 	        filteredData.forEach(item -> {
 	            // Crear un contenedor para cada evento
@@ -462,14 +447,13 @@ public class PatientlUIService {
 	            eventLayout.add(statusIcon, eventDetails, categoryInfo);
 	            timeline.add(eventLayout);
 	        });
-	        System.err.println("Se han añadido " + filteredData.size() + " datos clínicos al timeline.");
 	    }
 
 	    // Eliminar la línea de tiempo anterior si existe y añadir la nueva
-	    container.getChildren().filter(component -> component.hasClassName("clinical-timeline"))
-	            .forEach(container::remove);
+	    container.getChildren()
+	    		.filter(component -> component.hasClassName("clinical-timeline"))
+	         .forEach(container::remove);
 	    container.add(timeline);
-	    System.err.println("Nueva línea de tiempo añadida al contenedor.");
 	}
 
 
@@ -943,8 +927,7 @@ public class PatientlUIService {
 	    // Nombre del paciente
 	    Span name = new Span(patient.getName());
 	    name.addClassName("patient-name");
-	    System.out.println("Nombre del paciente añadido: " + patient.getName());
-
+	  
 	    // Teléfono del paciente
 	    Span phone = new Span(patient.getPhoneNumber());
 	    phone.addClassName("patient-phone");
