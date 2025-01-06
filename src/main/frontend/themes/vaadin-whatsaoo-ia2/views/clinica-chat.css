@@ -171,9 +171,13 @@
 /* Evento del timeline */
 .timeline-event {
     display: flex;
-    align-items: center;
+    align-items: stretch; /* Cambiado a stretch para que los elementos ocupen todo el alto */
     gap: 8px;
     margin-bottom: 4px;
+    background: white; /* Fondo base */
+    border-radius: 8px;
+    overflow: hidden; /* Para que los colores no se desborden */
+    position: relative; /* Para posicionamiento del color */
 }
 
 /* Detalles del evento */
@@ -240,13 +244,17 @@
    ========================================================================== */
 /* Categorías */
 .timeline-category-info {
-    margin-left: 0px;
-    margin-right: 8px;
-    margin-top: 4px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    min-width: 120px; /* Asegura un ancho mínimo */
-    transition: all 0.3s ease;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 180px; /* Ancho fijo para la sección de categoría */
+    margin: 0;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1; /* Por debajo del contenido */
 }
 
 .timeline-category-content {
@@ -589,8 +597,7 @@ custom-status-filter {
 }
 
 
-
-
+/***********************************************************/
 
 
 
