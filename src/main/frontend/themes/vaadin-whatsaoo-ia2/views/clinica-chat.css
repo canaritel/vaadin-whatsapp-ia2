@@ -1,8 +1,102 @@
-/* ===================================================
-   PACIENTES
-=================================================== */
+/* ==========================================================================
+   TABLA DE CONTENIDOS
+   ==========================================================================
+   1. Variables y Configuración Global
+   2. Layouts y Contenedores Base
+   3. Componentes de Usuario y Perfiles
+   4. Timeline y Eventos
+   5. Categorías y Estados
+   6. Navegación y Botones
+   7. Filtros y Búsqueda
+   8. Elementos de UI Comunes
+   9. Utilidades y Helpers
+   10. Animaciones
+   11. Media Queries
+   ========================================================================== */
 
-/* Estilo de cada ítem del paciente */
+/* ==========================================================================
+   1. Variables y Configuración Global
+   ========================================================================== */
+
+@keyframes pulse-glow {
+    0% { box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(0, 123, 255, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); }
+}
+
+
+/* ==========================================================================
+   2. Layouts y Contenedores Base
+   ========================================================================== */
+ .clinical-chat-container {
+    background-color: #f0f2f5;
+    display: flex;
+    gap: 1px;
+}
+
+/* Tarjetas de datos clínicos */
+.clinical-data-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clinical-data-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.clinical-timeline {
+    position: relative;
+    margin-left: 20px;
+    padding-left: 0px;
+}
+
+/* Panel izquierdo mejorado */
+.user-list-panel {
+    background: white;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header del panel de usuarios */
+.user-panel-header {
+    padding: 10px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chat-header {
+   padding: 10px; /* Espaciado interno */
+}
+
+/* Opcional: Ocultar la barra de desplazamiento en navegadores Webkit */
+.chat-header::-webkit-scrollbar {
+    display: none;
+}
+
+.chat-header-datos {
+    background-color: #f5f5f5; /* Color de fondo del header */
+    padding: 10px; /* Espaciado interno */
+}
+
+/* Opcional: Ocultar la barra de desplazamiento en navegadores Webkit */
+.chat-header-datos::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* ==========================================================================
+   3. Componentes de Usuario y Perfiles
+   ========================================================================== */
+/* Lista de Pacientes */
 .patient-item {
     padding: 8px 10px;
     cursor: pointer;
@@ -50,6 +144,12 @@
     flex-shrink: 0; /* Previene que el avatar se encoja */
 }
 
+/* Lista de pacientes */
+.patient-list {
+    overflow-y: auto; /* Habilita scroll si hay demasiados usuarios */
+    max-height: calc(100% - 60px); /* Ajusta el espacio disponible bajo el buscador */
+}
+
 /* Badge para mensajes no leídos */
 .unread-badge {
     background-color: #25d366;
@@ -64,11 +164,249 @@
     font-weight: bold;
 }
 
-/* ===================================================
-   BOTONES DE CATEGORÍA
-=================================================== */
 
-/* Botón de categoría */
+/* ==========================================================================
+   4. Timeline y Eventos
+   ========================================================================== */
+/* Evento del timeline */
+.timeline-event {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+/* Detalles del evento */
+.timeline-details {
+    background-color: var(--lumo-contrast-5pct);
+    padding: 10px;
+    border-radius: 8px;
+    flex-grow: 1;
+}
+
+.timeline-date {
+    font-size: 0.9em;
+    color: var(--lumo-secondary-text-color);
+}
+
+.timeline-title {
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.timeline-description {
+    margin-top: 5px;
+}
+
+/* Icono de estado */
+/* Icono de estado con estilo de tarjeta */
+.timeline-status-icon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-top: 4px;
+    margin-left: 8px;
+    margin-right: 8px;
+    padding: 6px 12px;
+    min-width: 140px;
+    border-radius: 8px;
+    background-color: rgba(0, 123, 255, 0.1); /* Fondo azul claro */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+/* Icono dentro del contenedor de estado */
+.timeline-status-icon vaadin-icon {
+    font-size: 16px;
+    width: 24px;
+    height: 24px;
+}
+
+/* Texto del estado */
+.timeline-status-icon span {
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+/* Efecto hover */
+.timeline-status-icon:hover {
+    background-color: rgba(0, 123, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+
+/* ==========================================================================
+   5. Categorías y Estados
+   ========================================================================== */
+/* Categorías */
+.timeline-category-info {
+    margin-left: 0px;
+    margin-right: 8px;
+    margin-top: 4px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    min-width: 120px; /* Asegura un ancho mínimo */
+    transition: all 0.3s ease;
+}
+
+.timeline-category-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.timeline-category-icon {
+    font-size: 16px;
+    color: white; /* Icono en blanco para mejor contraste */
+}
+
+.timeline-category-name {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: white; /* Texto en blanco para mejor contraste */
+}
+
+.timeline-category-name {
+    font-size: 0.95em;
+    font-weight: 500;
+    color: white; /* Texto en blanco para mejor contraste */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9); /* Sombra sutil */
+}
+
+/* Efecto hover para mejorar la interactividad */
+.timeline-category-info:hover {
+    opacity: 1;
+    transform: scale(1.01);
+}
+
+/* Estados Clínicos */
+.status-urgente {
+    background-color: #FFCDD2;
+}
+
+.status-pendiente {
+    background-color: #FFF9C4;
+}
+
+.status-en-curso {
+    background-color: #C5CAE9;
+}
+
+.status-completado {
+    background-color: #C8E6C9;
+}
+
+.status-unknown {
+    background-color: #E0E0E0;
+    color: #9E9E9E;
+}
+
+/* Clase para el contador de estado */
+.status-count {
+    font-size: 12px; /* Ajusta según necesidad */
+    color: #333; /* Color del texto del contador */
+    vertical-align: middle;
+    margin-right: 6px; /* Espacio entre contadores */
+    margin-left: 2px; /* espacio entre icono y contador numérico */
+}
+
+/* Clase para el contenedor de íconos de estado */
+.status-icons-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto; /* Empuja los íconos al final del contenedor */
+    overflow-x: auto; /* Permite el desplazamiento horizontal */
+    white-space: nowrap; /* Previene el wrap de íconos */
+    padding-right: 10px; /* Espacio adicional si es necesario */
+}
+
+/* Opcional: Personalizar la barra de desplazamiento */
+.status-icons-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.status-icons-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.status-icons-container::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos Específicos de Categorías */
+.category-appointments .timeline-category-info {
+    background-color: rgba(76, 175, 80, 0.8); /* Verde con transparencia */
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.category-treatments .timeline-category-info {
+    background-color: rgba(33, 150, 243, 0.8); /* Azul con transparencia */
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+}
+
+.category-payments .timeline-category-info {
+    background-color: rgba(255, 193, 7, 0.8); /* Amarillo con transparencia */
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+}
+
+/* Fondo púrpura - texto blanco */
+.category-documents .timeline-category-info {
+    background-color: rgba(156, 39, 176, 0.9); /* Púrpura más sólido */
+    box-shadow: 0 2px 4px rgba(156, 39, 176, 0.3);
+}
+
+/* Fondo naranja - texto blanco */
+.category-communications .timeline-category-info {
+    background-color: rgba(255, 87, 34, 0.9); /* Naranja más sólido */
+    box-shadow: 0 2px 4px rgba(255, 87, 34, 0.3);
+}
+
+/* Estilos para la vista de administración */
+.category-grid {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.category-panel {
+    background: var(--lumo-contrast-5pct);
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.category-item {
+    padding: 16px;
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* Estilos para la vista del cliente */
+.category-accordion {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 8px;
+}
+
+.subcategory-button {
+    width: 100%;
+    text-align: left;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    transition: background-color 0.2s;
+    font-size: 1em;
+}
+
+.subcategory-button:hover {
+    background-color: var(--lumo-contrast-5pct);
+}
+
+
+/* ==========================================================================
+   6. Navegación y Botones
+   ========================================================================== */
+/* Botones de Categoría */
 .category-button {
     margin: 0 5px;
     min-width: 60px;
@@ -125,139 +463,7 @@
     }
 }
 
-/* **************************************************************************************** */
-/* Estilos base para el área de categoría */
-.timeline-category-info {
-    margin-left: 0px;
-    margin-right: 8px;
-    margin-top: 4px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    min-width: 120px; /* Asegura un ancho mínimo */
-    transition: all 0.3s ease;
-}
-
-.timeline-category-content {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.timeline-category-icon {
-    font-size: 16px;
-    color: white; /* Icono en blanco para mejor contraste */
-}
-
-.timeline-category-name {
-    font-size: 0.9em;
-    font-weight: 500;
-    color: white; /* Texto en blanco para mejor contraste */
-}
-
-/* Estilos específicos por categoría con colores de fondo */
-.category-appointments .timeline-category-info {
-    background-color: rgba(76, 175, 80, 0.8); /* Verde con transparencia */
-    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
-}
-
-.category-treatments .timeline-category-info {
-    background-color: rgba(33, 150, 243, 0.8); /* Azul con transparencia */
-    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
-}
-
-.category-payments .timeline-category-info {
-    background-color: rgba(255, 193, 7, 0.8); /* Amarillo con transparencia */
-    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
-}
-
-/* Fondo púrpura - texto blanco */
-.category-documents .timeline-category-info {
-    background-color: rgba(156, 39, 176, 0.9); /* Púrpura más sólido */
-    box-shadow: 0 2px 4px rgba(156, 39, 176, 0.3);
-}
-
-/* Fondo naranja - texto blanco */
-.category-communications .timeline-category-info {
-    background-color: rgba(255, 87, 34, 0.9); /* Naranja más sólido */
-    box-shadow: 0 2px 4px rgba(255, 87, 34, 0.3);
-}
-
-/* Efecto hover para mejorar la interactividad */
-.timeline-category-info:hover {
-    opacity: 1;
-    transform: scale(1.01);
-}
-
-/* ===================================================
-   HEADER DEL CHAT
-=================================================== */
-.chat-header {
-   padding: 10px; /* Espaciado interno */
-}
-
-/* Opcional: Ocultar la barra de desplazamiento en navegadores Webkit */
-.chat-header::-webkit-scrollbar {
-    display: none;
-}
-
-/* ===================================================
-   HEADER DE CLINICA DATOS
-=================================================== */
-.chat-header-datos {
-    background-color: #f5f5f5; /* Color de fondo del header */
-    padding: 10px; /* Espaciado interno */
-}
-
-/* Opcional: Ocultar la barra de desplazamiento en navegadores Webkit */
-.chat-header-datos::-webkit-scrollbar {
-    display: none;
-}
-
-/* ===================================================
-   PANEL DE USUARIOS
-=================================================== */
-/* Panel izquierdo mejorado */
-.user-list-panel {
-    background: white;
-    border-right: 1px solid #e0e0e0;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Header del panel de usuarios */
-.user-panel-header {
-    padding: 10px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* Lista de pacientes */
-.patient-list {
-    overflow-y: auto; /* Habilita scroll si hay demasiados usuarios */
-    max-height: calc(100% - 60px); /* Ajusta el espacio disponible bajo el buscador */
-}
-
-/* Mensaje cuando no hay resultados */
-.no-results {
-    color: #999;
-    text-align: center;
-    margin-top: 10px;
-}
-
-.empty-message {
-    text-align: center;
-    color: var(--lumo-contrast-30pct);
-    padding: 20px;
-    font-style: italic;
-}
-
-/* ===================================================
-   BOTONES DE ÍCONO
-=================================================== */
-/* Botón con ícono */
+/* Botones de Iconos */
 .icon-button {
     background-color: transparent; /* Fondo transparente */
     border: none; /* Sin bordes */
@@ -277,285 +483,6 @@
     font-size: 30px; /* Tamaño del ícono ajustado */
     width: 48px; /* Ajustar ancho */
     height: 48px; /* Ajustar altura */
-}
-
-/* ===================================================
-   CONTENEDORES Y TARJETAS
-=================================================== */
-/* Contenedor moderno */
-.clinical-chat-container {
-    background-color: #f0f2f5;
-    display: flex;
-    gap: 1px;
-}
-
-/* Tarjetas de datos clínicos */
-.clinical-data-card {
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    margin: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.clinical-data-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* ===================================================
-   VISTAS DE ADMINISTRACIÓN Y CLIENTE
-=================================================== */
-/* Estilos para la vista de administración */
-.category-grid {
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.category-item {
-    padding: 16px;
-    border-bottom: 1px solid var(--lumo-contrast-10pct);
-}
-
-/* Estilos para la vista del cliente */
-.category-accordion {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 8px;
-}
-
-.subcategory-button {
-    width: 100%;
-    text-align: left;
-    padding: 12px;
-    border: none;
-    background: transparent;
-    transition: background-color 0.2s;
-    font-size: 1em;
-}
-
-.subcategory-button:hover {
-    background-color: var(--lumo-contrast-5pct);
-}
-
-.category-panel {
-    background: var(--lumo-contrast-5pct);
-    padding: 16px;
-    border-radius: 12px;
-}
-
-/* ===================================================
-   TIMELINE
-=================================================== */
-/* Contenedor principal */
-.clinical-timeline {
-    position: relative;
-    margin-left: 20px;
-    padding-left: 0px;
-}
-
-.timeline-category-name {
-    font-size: 0.95em;
-    font-weight: 500;
-    color: white; /* Texto en blanco para mejor contraste */
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9); /* Sombra sutil */
-}
-
-/* Evento del timeline */
-.timeline-event {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-}
-
-/* Icono de estado */
-/* Icono de estado con estilo de tarjeta */
-.timeline-status-icon {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-    margin-top: 4px;
-    margin-left: 8px;
-    margin-right: 8px;
-    padding: 6px 12px;
-    min-width: 140px;
-    border-radius: 8px;
-    background-color: rgba(0, 123, 255, 0.1); /* Fondo azul claro */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
-    transition: background-color 0.3s ease, transform 0.3s ease;
-}
-
-/* Icono dentro del contenedor de estado */
-.timeline-status-icon vaadin-icon {
-    font-size: 16px;
-    width: 24px;
-    height: 24px;
-}
-
-/* Texto del estado */
-.timeline-status-icon span {
-    font-weight: 600;
-    font-size: 0.95em;
-}
-
-/* Efecto hover */
-.timeline-status-icon:hover {
-    background-color: rgba(0, 123, 255, 0.2);
-    transform: translateY(-2px);
-}
-
-
-/* Detalles del evento */
-.timeline-details {
-    background-color: var(--lumo-contrast-5pct);
-    padding: 10px;
-    border-radius: 8px;
-    flex-grow: 1;
-}
-
-.timeline-date {
-    font-size: 0.9em;
-    color: var(--lumo-secondary-text-color);
-}
-
-.timeline-title {
-    font-weight: bold;
-    margin-top: 5px;
-}
-
-.timeline-description {
-    margin-top: 5px;
-}
-
-/* Categoría en timeline */
-.timeline-category-info {
-    margin-left: 0px;
-    margin-right: 8px;
-    margin-top: 4px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    min-width: 180px;
-    transition: all 0.3s ease;
-}
-
-.timeline-category-content {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Estados clínicos */
-.status-urgente {
-    background-color: #FFCDD2;
-}
-
-.status-pendiente {
-    background-color: #FFF9C4;
-}
-
-.status-en-curso {
-    background-color: #C5CAE9;
-}
-
-.status-completado {
-    background-color: #C8E6C9;
-}
-
-.status-unknown {
-    background-color: #E0E0E0;
-    color: #9E9E9E;
-}
-
-/* Clase para el contador de estado */
-.status-count {
-    font-size: 12px; /* Ajusta según necesidad */
-    color: #333; /* Color del texto del contador */
-    vertical-align: middle;
-    margin-right: 6px; /* Espacio entre contadores */
-    margin-left: 2px; /* espacio entre icono y contador numérico */
-}
-
-/* Clase para el contenedor de íconos de estado */
-.status-icons-container {
-    display: flex;
-    align-items: center;
-    margin-left: auto; /* Empuja los íconos al final del contenedor */
-    overflow-x: auto; /* Permite el desplazamiento horizontal */
-    white-space: nowrap; /* Previene el wrap de íconos */
-    padding-right: 10px; /* Espacio adicional si es necesario */
-}
-
-/* Opcional: Personalizar la barra de desplazamiento */
-.status-icons-container::-webkit-scrollbar {
-    height: 6px;
-}
-
-.status-icons-container::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-}
-
-.status-icons-container::-webkit-scrollbar-track {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* Estilos para el layout del filtro */
-.filter-layout {
-    background-color: #f9f9f9;
-    padding: 10px;
-    border-radius: 8px;
-    margin-left: 20px;
-    margin-bottom: 6px;
-    gap: 16px; /* Espacio entre elementos */
-}
-
-.filter-title {
-    color: var(--lumo-secondary-text-color);
-    font-size: 0.875rem;
-    font-weight: 500;
-    white-space: nowrap;
-    margin-bottom: 8px;
-    margin-left: 8px;
-    margin-right: -12px;
-}
-
-.custom-status-filter {
-    margin: 0;
-    min-width: 160px;
-}
-
-/* Definir keyframes para el efecto de brillo pulsante */
-@keyframes pulse-glow {
-    0% {
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
-    50% {
-        box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
-    }
-    100% {
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
-}
-
-/* Estilo por defecto para el filtro de estado */
-.custom-status-filter {
-    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-    
-    border-radius: 4px; /* Esquinas redondeadas */
-    padding: 4px 8px; /* Espaciado interno */
-}
-
-/* Estilo cuando el filtro está activo (no es "Todos") */
-.custom-status-filter.filter-active {
-    border-color: #007bff; /* Azul */
-    box-shadow: 0 0 20px rgba(0, 123, 255, 0.7);
-    background-color: #d0e7ff; /* Fondo azul más intenso */
-    border-width: 2px; /* Aumentar el grosor del borde */
-    animation: pulse-glow 2s infinite; /* Añadir animación de brillo pulsante */
 }
 
 /* Estilos para la previsualización del ícono */
@@ -584,3 +511,90 @@
     color: var(--lumo-primary-color);
     transform: scale(1.1);
 }
+
+
+/* ==========================================================================
+   7. Filtros y Búsqueda
+   ========================================================================== */
+/* Estilos para el layout del filtro */
+.filter-layout {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    margin-left: 20px;
+    margin-bottom: 6px;
+    gap: 16px; /* Espacio entre elementos */
+}
+
+.filter-title {
+    color: var(--lumo-secondary-text-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    margin-bottom: 8px;
+    margin-left: 8px;
+    margin-right: -12px;
+}
+
+custom-status-filter {
+    margin: 0;
+    min-width: 160px;
+}
+
+/* Estilo por defecto para el filtro de estado */
+.custom-status-filter {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    
+    border-radius: 4px; /* Esquinas redondeadas */
+    padding: 4px 8px; /* Espaciado interno */
+}
+
+/* Estilo cuando el filtro está activo (no es "Todos") */
+.custom-status-filter.filter-active {
+    border-color: #007bff; /* Azul */
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.7);
+    background-color: #d0e7ff; /* Fondo azul más intenso */
+    border-width: 2px; /* Aumentar el grosor del borde */
+    animation: pulse-glow 2s infinite; /* Añadir animación de brillo pulsante */
+}
+
+/* Definir keyframes para el efecto de brillo pulsante */
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+}
+
+
+/* ==========================================================================
+   8. Elementos de UI Comunes
+   ========================================================================== */
+/* Mensaje cuando no hay resultados */
+.no-results {
+    color: #999;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.empty-message {
+    text-align: center;
+    color: var(--lumo-contrast-30pct);
+    padding: 20px;
+    font-style: italic;
+}
+
+
+
+
+
+
+
+
+
+

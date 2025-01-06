@@ -256,8 +256,7 @@ public class PatientlUIService {
 	    // Crear la lista de estados, añadiendo "Todos" como primera opción
 	    List<String> estados = new ArrayList<>();
 	    estados.add(STATUS_ALL_NAME); // "Todos" localizado
-	    estados.addAll(
-	            Arrays.stream(ClinicalStatus.values())
+	    estados.addAll(Arrays.stream(ClinicalStatus.values())
 	                  .map(ClinicalStatus::getDisplayName)
 	                  .collect(Collectors.toList())
 	    );
@@ -270,7 +269,7 @@ public class PatientlUIService {
 	    // Permitir la selección nula para manejar "Todos" como selección nula
 	    filterStatus.setAllowCustomValue(false);
 	    //filterStatus.setEmptySelectionAllowed(true);
-	    filterStatus.setClearButtonVisible(true); // Opcional: mostrar botón para limpiar la selección
+	    filterStatus.setClearButtonVisible(true); // mostrar botón para limpiar la selección
 
 	    // Listener para manejar la selección
 	    filterStatus.addValueChangeListener(event -> {
@@ -303,6 +302,7 @@ public class PatientlUIService {
 		field.setWidth("260px");
 		field.setValueChangeMode(ValueChangeMode.EAGER);
 		field.addClassName("custom-status-filter"); // Misma clase que el combo
+		field.setClearButtonVisible(true); // Opcional: mostrar botón para limpiar la selección
 
 		field.addValueChangeListener(event -> {
 			currentSearchTerm = event.getValue();
