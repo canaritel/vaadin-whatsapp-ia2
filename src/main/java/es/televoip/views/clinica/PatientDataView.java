@@ -184,7 +184,7 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
 		chatLayout.add(messageList);
 
 		// Inicializar los filtros aunque no haya datos
-		uiManager.displayClinicalData(messageList, new ArrayList<>(), "all");
+		//uiManager.displayClinicalData(messageList, new ArrayList<>(), "all");
 	}
 
 	private void createUserPanel() {

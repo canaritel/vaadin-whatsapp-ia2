@@ -120,20 +120,21 @@ public class PatientlUIService {
 	 */
 	@Transactional(readOnly = true)
 	public void displayClinicalData(VerticalLayout container, List<ClinicalData> newData, String categoryId) {
-		if (container == null)
-			return;
+	    if (container == null)
+	        return;
 
-		this.currentCategoryId = categoryId;
-		this.allData = new ArrayList<>(newData);
+	    this.currentCategoryId = categoryId;
+	    this.allData = new ArrayList<>(newData);
 
-		if (!areFiltersCreated) {
-			createLayout(container);
-		}
+	    if (!areFiltersCreated) {
+	        createLayout(container);
+	    }
 
-		if (messageList != null) {
-			applyFilters(container);
-		}
+	    if (messageList != null) {
+	        applyFilters(container);
+	    }
 	}
+
 
 	/**
 	 * Crea y añade el layout de filtros al contenedor.
@@ -141,102 +142,117 @@ public class PatientlUIService {
 	 * @param container El contenedor donde se añadirán los filtros.
 	 */
 	private void createLayout(VerticalLayout container) {
-		filterLayout = new HorizontalLayout();
-		filterLayout.addClassName("filter-layout");
-		filterLayout.setWidth("97%");
-		filterLayout.setSpacing(false);
-		filterLayout.setPadding(false);
-		filterLayout.setAlignItems(Alignment.CENTER);
+	    filterLayout = new HorizontalLayout();
+	    filterLayout.addClassName("filter-layout");
+	    filterLayout.setWidth("97%");
+	    filterLayout.setSpacing(false);
+	    filterLayout.setPadding(false);
+	    filterLayout.setAlignItems(Alignment.CENTER);
 
-		// Campo de búsqueda
-		searchField = createSearchField();
+	    // Campo de búsqueda
+	    searchField = createSearchField();
 
-		// ComboBox de categorías
-		categoryFilter = createCategoryFilter();
+	    // ComboBox de categorías
+	    categoryFilter = createCategoryFilter();
 
-		// Filtro de estado
-		statusFilter = createStatusFilter();
+	    // Filtro de estado
+	    statusFilter = createStatusFilter();
 
-		filterLayout.add(categoryFilter, statusFilter, searchField);
+	    filterLayout.add(categoryFilter, statusFilter, searchField);
 
-		if (container.getComponentCount() > 0) {
-			container.addComponentAsFirst(filterLayout);
-		} else {
-			container.add(filterLayout);
-		}
+	    if (container.getComponentCount() > 0) {
+	        container.addComponentAsFirst(filterLayout);
+	    } else {
+	        container.add(filterLayout);
+	    }
 
-		// No aplicar filtros aquí
-		areFiltersCreated = true;
+	    // No aplicar filtros aquí
+	    areFiltersCreated = true;
+
+	    // Aplicar los filtros actuales
+	    if (dataManager.getCurrentUser() != null) {
+	        applyFilters(container);
+	        System.err.println("Aplicando filtros iniciales al crear el layout.");
+	    }
 	}
+
 
 	// En ClinicalUIService
 	@Transactional(readOnly = true)
 	public void loadCategoryData(String category) {
-		if (dataManager.getCurrentUser() == null) {
-			showMessageWarning(i18nUtil.get("message.selectPatientFirst"));
-			return;
-		}
+	    if (dataManager.getCurrentUser() == null) {
+	        showMessageWarning(i18nUtil.get("message.selectPatientFirst"));
+	        System.err.println("Intento de cargar datos clínicos sin seleccionar un paciente.");
+	        return;
+	    }
 
-		List<ClinicalData> data;
-		if ("all".equals(category)) {
-			data = dataManager.getAllClinicalData(dataManager.getCurrentUser().getPhoneNumber());
-		} else {
-			data = dataManager.getClinicalData(dataManager.getCurrentUser().getPhoneNumber(), category);
-		}
+	    List<ClinicalData> data;
+	    if ("all".equals(category)) {
+	        data = dataManager.getAllClinicalData(dataManager.getCurrentUser().getPhoneNumber());
+	    } else {
+	        data = dataManager.getClinicalData(dataManager.getCurrentUser().getPhoneNumber(), category);
+	    }
 
-		// No limpiar todo el messageList, solo los datos
-		clearPreviousData();
-		displayClinicalData(messageList, data, category);
+	    // Actualizar los datos originales
+	    this.allData = new ArrayList<>(data);
+
+	    // Aplicar los filtros actuales (estado y búsqueda)
+	    applyFilters(messageList);
+	    System.err.println("Aplicando filtros después de cargar datos por categoría: " + category);
 	}
 
 	private ComboBox<Category> createCategoryFilter() {
-		ComboBox<Category> filterCategory = new ComboBox<>();
+	    ComboBox<Category> filterCategory = new ComboBox<>();
 
-		// Usar i18nUtil para el placeholder
-		filterCategory.setPlaceholder(i18nUtil.get("filter.category.placeholder"));
-		filterCategory.addClassName("custom-status-filter");
-		filterCategory.setWidth("240px");
+	    // Usar i18nUtil para el placeholder
+	    filterCategory.setPlaceholder(i18nUtil.get("filter.category.placeholder"));
+	    filterCategory.addClassName("custom-status-filter");
+	    filterCategory.setWidth("240px");
 
-		// Crear lista de categorías activas
-		List<Category> activeCategories = new ArrayList<>(categoryManager.getActiveCategories());
+	    // Crear lista de categorías activas
+	    List<Category> activeCategories = new ArrayList<>(categoryManager.getActiveCategories());
 
-		// Crear la categoría ficticia "Todos"
-		Category allCategory = Category.builder()
-				.id(CATEGORY_ALL_ID)
-				.name(CATEGORY_ALL_NAME)
-				.isActive(true) // Puede ser activo o no, según prefieras
-				.build();
+	    // Crear la categoría ficticia "Todos"
+	    Category allCategory = Category.builder()
+	            .id(CATEGORY_ALL_ID)
+	            .name(CATEGORY_ALL_NAME)
+	            .isActive(true) // Puede ser activo o no, según prefieras
+	            .build();
 
-		// Prepend "Todos" al inicio de la lista de categorías
-		List<Category> categoriesWithAll = new ArrayList<>();
-		categoriesWithAll.add(allCategory);
-		categoriesWithAll.addAll(activeCategories);
+	    // Prepend "Todos" al inicio de la lista de categorías
+	    List<Category> categoriesWithAll = new ArrayList<>();
+	    categoriesWithAll.add(allCategory);
+	    categoriesWithAll.addAll(activeCategories);
 
-		filterCategory.setItems(categoriesWithAll);
-		filterCategory.setItemLabelGenerator(Category::getName);
+	    filterCategory.setItems(categoriesWithAll);
+	    filterCategory.setItemLabelGenerator(Category::getName);
 
-		// Permitir la selección nula si deseas manejar "Todos" como selección nula
-		// filterCategory.setAllowCustomValue(false);
-		// filterCategory.setEmptySelectionAllowed(true);
+	    // Listener para manejar la selección
+	    filterCategory.addValueChangeListener(event -> {
+	        Category selectedCategory = event.getValue();
+	        if (selectedCategory == null || CATEGORY_ALL_ID.equals(selectedCategory.getId())) {
+	            currentCategoryId = "all"; // valor por defecto interno
+	            filterCategory.removeClassName("filter-active");
+	        } else {
+	            currentCategoryId = selectedCategory.getId();
+	            filterCategory.addClassName("filter-active");
+	        }
 
-		// Listener para manejar la selección
-		filterCategory.addValueChangeListener(event -> {
-			Category selectedCategory = event.getValue();
-			if (selectedCategory == null || CATEGORY_ALL_ID.equals(selectedCategory.getId())) {
-				currentCategoryId = "all"; // valor por defecto interno
-				filterCategory.removeClassName("filter-active");
-			} else {
-				currentCategoryId = selectedCategory.getId();
-				filterCategory.addClassName("filter-active");
-			}
+	        if (dataManager.getCurrentUser() != null) {
+	            loadCategoryData(currentCategoryId);
+	            System.err.println("Cargando datos clínicos para el filtro de categoría: " + currentCategoryId);
+	        }
+	    });
 
-			if (messageList != null && dataManager.getCurrentUser() != null) {
-				loadCategoryData(currentCategoryId);
-			}
-		});
+	    // Establecer la categoría "Todos" como seleccionada por defecto internamente
+	    currentCategoryId = "all";
+	    loadCategoryData(currentCategoryId);
+	    filterCategory.setValue(null); // Mostrar el placeholder
+	    System.err.println("Filtro de categoría inicializado con 'all' (no seleccionado en ComboBox).");
 
-		return filterCategory;
+	    return filterCategory;
 	}
+
 
 	private ComboBox<String> createStatusFilter() {
 	    ComboBox<String> filterStatus = new ComboBox<>();
@@ -273,19 +289,21 @@ public class PatientlUIService {
 	            System.err.println("Filtro de estado establecido a: " + currentStatusFilter);
 	        }
 
-	        if (messageList != null && dataManager.getCurrentUser() != null) {
-	            loadCategoryData(currentStatusFilter);
-	            System.err.println("Cargando datos clínicos para el filtro de estado: " + currentStatusFilter);
+	        if (dataManager.getCurrentUser() != null) {
+	            applyFilters(messageList);
+	            System.err.println("Aplicando filtros para el filtro de estado: " + currentStatusFilter);
 	        }
 	    });
 
 	    // Establecer la selección inicial a "Todos" de forma interna
-	    // No seleccionamos nada en el ComboBox para mostrar el placeholder
-	    filterStatus.setValue(null);
-	    System.err.println("Filtro de estado inicializado con 'Todos' (no seleccionado).");
+	    currentStatusFilter = "all";
+	    applyFilters(messageList);
+	    filterStatus.setValue(null); // Mostrar el placeholder
+	    System.err.println("Filtro de estado inicializado con 'all' (no seleccionado en ComboBox).");
 
 	    return filterStatus;
 	}
+
 
 	private TextField createSearchField() {
 		TextField field = new TextField();
@@ -321,132 +339,139 @@ public class PatientlUIService {
 	 */
 	@Transactional(readOnly = true)
 	private void applyFilters(VerticalLayout container) {
-		// Normalizar el término de búsqueda una sola vez
-		String normalizedSearchTerm = StringUtils.removeAccents(currentSearchTerm.toLowerCase());
+	    // Normalizar el término de búsqueda una sola vez
+	    String normalizedSearchTerm = StringUtils.removeAccents(currentSearchTerm.toLowerCase());
 
-		// Filtrar los datos clínicos
-		List<ClinicalData> filteredData = allData.stream().filter(cd -> {
-			//boolean matchesStatus = currentStatusFilter.equals("Todos")
-			//		|| (cd.getStatus() != null && cd.getStatus().equalsIgnoreCase(currentStatusFilter));
-			
-			boolean matchesStatus = currentStatusFilter.equals("all")
-			        || (cd.getStatus() != null && cd.getStatus().equalsIgnoreCase(currentStatusFilter));
-			
-			boolean matchesSearch = currentSearchTerm.isEmpty()
-					|| (cd.getTitle() != null
-							&& StringUtils.removeAccents(cd.getTitle().toLowerCase()).contains(normalizedSearchTerm))
-					|| (cd.getDescription() != null
-							&& StringUtils.removeAccents(cd.getDescription().toLowerCase()).contains(normalizedSearchTerm));
-			return matchesStatus && matchesSearch;
-		}).sorted(Comparator.comparingInt((ClinicalData cd) -> getStatusPriority(cd.getStatus()))
-				.thenComparing(ClinicalData::getDate, Comparator.nullsLast(Comparator.reverseOrder()))
-				.thenComparing(cd -> cd.getCategory().getDisplayOrder())) // Ahora podemos acceder directamente
-				.collect(Collectors.toList());
+	    // Filtrar los datos clínicos
+	    List<ClinicalData> filteredData = allData.stream().filter(cd -> {
+	        boolean matchesStatus = currentStatusFilter.equals("all")
+	                || (cd.getStatus() != null && cd.getStatus().equalsIgnoreCase(currentStatusFilter));
 
-		// Crear una línea de tiempo
-		VerticalLayout timeline = new VerticalLayout();
-		timeline.addClassName("clinical-timeline");
-		timeline.setPadding(false);
-		timeline.setSpacing(false);
-		timeline.setWidth("97%");
+	        boolean matchesSearch = currentSearchTerm.isEmpty()
+	                || (cd.getTitle() != null
+	                        && StringUtils.removeAccents(cd.getTitle().toLowerCase()).contains(normalizedSearchTerm))
+	                || (cd.getDescription() != null
+	                        && StringUtils.removeAccents(cd.getDescription().toLowerCase()).contains(normalizedSearchTerm));
+	        return matchesStatus && matchesSearch;
+	    }).sorted(Comparator.comparingInt((ClinicalData cd) -> getStatusPriority(cd.getStatus()))
+	            .thenComparing(ClinicalData::getDate, Comparator.nullsLast(Comparator.reverseOrder()))
+	            .thenComparing(cd -> cd.getCategory().getDisplayOrder())) // Ahora podemos acceder directamente
+	            .collect(Collectors.toList());
 
-		if (filteredData.isEmpty()) {
-			Div emptyMessage = new Div();
-			emptyMessage.setText("No hay registros clínicos para mostrar.");
-			emptyMessage.addClassName("empty-message");
-			timeline.add(emptyMessage);
-		} else {
-			filteredData.forEach(item -> {
-				// Crear un contenedor para cada evento
-				HorizontalLayout eventLayout = new HorizontalLayout();
-				eventLayout.setWidthFull(); // Asegura que ocupa todo el ancho disponible
-				eventLayout.setSpacing(false);
-				eventLayout.setPadding(false);
-				eventLayout.setAlignItems(Alignment.START);
-				eventLayout.addClassName("timeline-event");
+	    System.err.println("Aplicando filtros: " + 
+	        "Categoría=" + currentCategoryId + 
+	        ", Estado=" + currentStatusFilter + 
+	        ", Búsqueda='" + currentSearchTerm + "'" + 
+	        ". Datos filtrados: " + filteredData.size());
 
-				// Asignar clase CSS según el estado
-				switch (item.getStatus()) {
-				case "Urgente":
-					eventLayout.addClassName("status-urgente");
-					break;
-				case "Pendiente":
-					eventLayout.addClassName("status-pendiente");
-					break;
-				case "En curso":
-					eventLayout.addClassName("status-en-curso");
-					break;
-				case "Completado":
-					eventLayout.addClassName("status-completado");
-					break;
-				default:
-					eventLayout.addClassName("status-unknown");
-					break;
-				}
+	    // Crear una línea de tiempo
+	    VerticalLayout timeline = new VerticalLayout();
+	    timeline.addClassName("clinical-timeline");
+	    timeline.setPadding(false);
+	    timeline.setSpacing(false);
+	    timeline.setWidth("97%");
 
-				// Punto de la línea de tiempo (icono de estado + texto)
-				Span statusIcon = createStatusIconWithText(item.getStatus());
-				statusIcon.addClassName("timeline-status-icon");
+	    if (filteredData.isEmpty()) {
+	        Div emptyMessage = new Div();
+	        emptyMessage.setText("No hay registros clínicos para mostrar.");
+	        emptyMessage.addClassName("empty-message");
+	        timeline.add(emptyMessage);
+	        System.err.println("No hay datos clínicos después de aplicar filtros.");
+	    } else {
+	        filteredData.forEach(item -> {
+	            // Crear un contenedor para cada evento
+	            HorizontalLayout eventLayout = new HorizontalLayout();
+	            eventLayout.setWidthFull(); // Asegura que ocupa todo el ancho disponible
+	            eventLayout.setSpacing(false);
+	            eventLayout.setPadding(false);
+	            eventLayout.setAlignItems(Alignment.START);
+	            eventLayout.addClassName("timeline-event");
 
-				// Detalles del evento
-				VerticalLayout eventDetails = new VerticalLayout();
-				eventDetails.setPadding(true);
-				eventDetails.setSpacing(false);
-				eventDetails.addClassName("timeline-details");
+	            // Asignar clase CSS según el estado
+	            switch (item.getStatus()) {
+	                case "Urgente":
+	                    eventLayout.addClassName("status-urgente");
+	                    break;
+	                case "Pendiente":
+	                    eventLayout.addClassName("status-pendiente");
+	                    break;
+	                case "En curso":
+	                    eventLayout.addClassName("status-en-curso");
+	                    break;
+	                case "Completado":
+	                    eventLayout.addClassName("status-completado");
+	                    break;
+	                default:
+	                    eventLayout.addClassName("status-unknown");
+	                    break;
+	            }
 
-				// Manejar 'null' en la fecha
-				String dateText = (item.getDate() != null) ? item.getDate().toLocalDate().toString()
-						: "Fecha no disponible";
-				Span date = new Span(dateText);
-				date.addClassName("timeline-date");
+	            // Punto de la línea de tiempo (icono de estado + texto)
+	            Span statusIcon = createStatusIconWithText(item.getStatus());
+	            statusIcon.addClassName("timeline-status-icon");
 
-				Span title = new Span(item.getTitle());
-				title.addClassName("timeline-title");
+	            // Detalles del evento
+	            VerticalLayout eventDetails = new VerticalLayout();
+	            eventDetails.setPadding(true);
+	            eventDetails.setSpacing(false);
+	            eventDetails.addClassName("timeline-details");
 
-				Span description = new Span(item.getDescription());
-				description.addClassName("timeline-description");
+	            // Manejar 'null' en la fecha
+	            String dateText = (item.getDate() != null) ? item.getDate().toLocalDate().toString()
+	                    : "Fecha no disponible";
+	            Span date = new Span(dateText);
+	            date.addClassName("timeline-date");
 
-				Button detailsButton = new Button("Ver detalles", new Icon(VaadinIcon.INFO_CIRCLE));
-				detailsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-				detailsButton.addClickListener(e -> openDetailsDialog(item));
+	            Span title = new Span(item.getTitle());
+	            title.addClassName("timeline-title");
 
-				eventDetails.add(date, title, description, detailsButton);
+	            Span description = new Span(item.getDescription());
+	            description.addClassName("timeline-description");
 
-				// Contenedor para la información de categoría (derecha)
-				Div categoryInfo = new Div();
-				categoryInfo.addClassName("timeline-category-info");
+	            Button detailsButton = new Button("Ver detalles", new Icon(VaadinIcon.INFO_CIRCLE));
+	            detailsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+	            detailsButton.addClickListener(e -> openDetailsDialog(item));
 
-				// Ahora accedemos directamente a la categoría
-				Optional.ofNullable(item.getCategory()).ifPresent(category -> {
-					try {
-						VaadinIcon vaadinIcon = VaadinIcon.valueOf(category.getIcon());
-						Icon icon = vaadinIcon.create();
-						icon.addClassName("timeline-category-icon");
+	            eventDetails.add(date, title, description, detailsButton);
 
-						Span categoryName = new Span(category.getName());
-						categoryName.addClassName("timeline-category-name");
+	            // Contenedor para la información de categoría (derecha)
+	            Div categoryInfo = new Div();
+	            categoryInfo.addClassName("timeline-category-info");
 
-						HorizontalLayout categoryContent = new HorizontalLayout(icon, categoryName);
-						categoryContent.addClassName("timeline-category-content");
+	            // Ahora accedemos directamente a la categoría
+	            Optional.ofNullable(item.getCategory()).ifPresent(category -> {
+	                try {
+	                    VaadinIcon vaadinIcon = VaadinIcon.valueOf(category.getIcon());
+	                    Icon icon = vaadinIcon.create();
+	                    icon.addClassName("timeline-category-icon");
 
-						categoryInfo.add(categoryContent);
+	                    Span categoryName = new Span(category.getName());
+	                    categoryName.addClassName("timeline-category-name");
 
-						String categoryClass = "category-" + category.getId().toLowerCase();
-						eventLayout.addClassName(categoryClass);
-					} catch (IllegalArgumentException e) {
-						System.err.println("Icono inválido para categoría: " + category.getIcon());
-					}
-				});
-				eventLayout.add(statusIcon, eventDetails, categoryInfo);
-				timeline.add(eventLayout);
-			});
-		}
+	                    HorizontalLayout categoryContent = new HorizontalLayout(icon, categoryName);
+	                    categoryContent.addClassName("timeline-category-content");
 
-		// Eliminar la línea de tiempo anterior si existe y añadir la nueva
-		container.getChildren().filter(component -> component.hasClassName("clinical-timeline"))
-				.forEach(container::remove);
-		container.add(timeline);
+	                    categoryInfo.add(categoryContent);
+
+	                    String categoryClass = "category-" + category.getId().toLowerCase();
+	                    eventLayout.addClassName(categoryClass);
+	                } catch (IllegalArgumentException e) {
+	                    System.err.println("Icono inválido para categoría: " + category.getIcon());
+	                }
+	            });
+	            eventLayout.add(statusIcon, eventDetails, categoryInfo);
+	            timeline.add(eventLayout);
+	        });
+	        System.err.println("Se han añadido " + filteredData.size() + " datos clínicos al timeline.");
+	    }
+
+	    // Eliminar la línea de tiempo anterior si existe y añadir la nueva
+	    container.getChildren().filter(component -> component.hasClassName("clinical-timeline"))
+	            .forEach(container::remove);
+	    container.add(timeline);
+	    System.err.println("Nueva línea de tiempo añadida al contenedor.");
 	}
+
 
 	/**
 	 * Crea un icono representativo del estado clínico.
