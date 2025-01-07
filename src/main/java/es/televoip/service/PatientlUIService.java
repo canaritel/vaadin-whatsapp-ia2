@@ -330,7 +330,7 @@ public class PatientlUIService {
 	 */
 	@Transactional(readOnly = true)
 	private void applyFilters(VerticalLayout container) {
-		 // Normalizar el término de búsqueda una sola vez
+	    // Normalizar el término de búsqueda una sola vez
 	    String normalizedSearchTerm = StringUtils.removeAccents(currentSearchTerm.toLowerCase());
 
 	    // Filtrar los datos clínicos
@@ -425,6 +425,9 @@ public class PatientlUIService {
 	            // Ahora accedemos directamente a la categoría
 	            Optional.ofNullable(item.getCategory()).ifPresent(category -> {
 	                try {
+	                    // Forzar la inicialización del proxy
+	                    category.getIcon();
+
 	                    VaadinIcon vaadinIcon = VaadinIcon.valueOf(category.getIcon());
 	                    Icon icon = vaadinIcon.create();
 	                    icon.addClassName("timeline-category-icon");
@@ -450,11 +453,10 @@ public class PatientlUIService {
 
 	    // Eliminar la línea de tiempo anterior si existe y añadir la nueva
 	    container.getChildren()
-	    		.filter(component -> component.hasClassName("clinical-timeline"))
-	         .forEach(container::remove);
+	            .filter(component -> component.hasClassName("clinical-timeline"))
+	            .forEach(container::remove);
 	    container.add(timeline);
 	}
-
 
 	/**
 	 * Crea un icono representativo del estado clínico.

@@ -28,9 +28,10 @@ public interface PatientRepository extends JpaRepository<PatientData, String> {
 	List<PatientData> findAllWithClinicalData();
 
 	// Cargar un paciente con sus datos clínicos y categorías
-	@Query("SELECT DISTINCT p FROM PatientData p " 
-			+ "LEFT JOIN FETCH p.clinicalDataList cd "
-			+ "LEFT JOIN FETCH cd.category cat " + "WHERE p.phoneNumber = :phoneNumber")
+	@Query("SELECT DISTINCT p FROM PatientData p " +
+	       "LEFT JOIN FETCH p.clinicalDataList cd " +
+	       "LEFT JOIN FETCH cd.category cat " +
+	       "WHERE p.phoneNumber = :phoneNumber")
 	Optional<PatientData> findByPhoneNumberWithClinicalData(@Param("phoneNumber") String phoneNumber);
 
 	/**

@@ -279,8 +279,32 @@ public class CategoryService {
      * @param categoryId ID de la categoría.
      * @return La categoría correspondiente o null si no se encuentra.
      */
+    @Transactional(readOnly = true)
     public Optional<Category> getCategoryById(String categoryId) {
        return categoryRepository.findByIdWithSubCategories(categoryId);
+    }
+    
+    /**
+     * Obtiene una categoría por su ID, incluyendo subCategories.
+     * 
+     * @param categoryId ID de la categoría.
+     * @return La categoría correspondiente o Optional vacío si no se encuentra.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Category> getCategoryByIdWithDetails(String categoryId) {
+        return categoryRepository.findByIdWithSubCategories(categoryId);
+    }
+
+    /**
+     * Obtiene todas las categorías con subCategories.
+     * 
+     * @return Lista de todas las categorías.
+     */
+    @Transactional(readOnly = true)
+    public List<Category> getAllCategoriesWithDetails() {
+        return categoryRepository.findAllWithSubCategories().stream()
+            .sorted(Comparator.comparingInt(Category::getDisplayOrder))
+            .collect(Collectors.toList());
     }
 
     /**
