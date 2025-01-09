@@ -121,62 +121,6 @@ public class PatientService {
 	}
 
 	/**
-    * Obtiene los datos clínicos de un paciente específico filtrados por categoría.
-    *
-    * @param phoneNumber Número de teléfono del paciente.
-    * @param category    ID de la categoría para filtrar.
-    * @return Lista de datos clínicos que pertenecen a la categoría especificada.
-    */
-   @Transactional(readOnly = true)
-   public List<ClinicalData> getClinicalData(String phoneNumber, String category) {
-       // Inicializar una lista para almacenar los datos clínicos filtrados
-       List<ClinicalData> filteredData = new ArrayList<>();
-
-       // Intentar encontrar al paciente por su número de teléfono, incluyendo los datos clínicos y categorías asociadas
-       Optional<PatientData> optionalPatient = patientRepository.findByPhoneNumberWithClinicalData(phoneNumber);
-
-       // Verificar si el paciente existe
-       if (optionalPatient.isPresent()) {
-           PatientData patient = optionalPatient.get();
-
-           // Obtener la lista de datos clínicos del paciente
-           List<ClinicalData> clinicalDataList = patient.getClinicalDataList();
-
-           // Verificar que la lista de datos clínicos no sea nula
-           if (clinicalDataList != null && !clinicalDataList.isEmpty()) {
-               // Iterar sobre cada dato clínico
-               for (ClinicalData data : clinicalDataList) {
-                   // Verificar que la categoría del dato clínico no sea nula
-                   if (data.getCategory() != null) {
-                       // Comparar el ID de la categoría del dato clínico con la categoría filtrada
-                       if (data.getCategory().getId().equals(category)) {
-                           // Añadir el dato clínico a la lista filtrada
-                           filteredData.add(data);
-                       }
-                   }
-               }
-           }
-       } else {
-           // Si el paciente no se encuentra, se puede manejar según sea necesario
-           // Por ejemplo, registrar un mensaje de advertencia o lanzar una excepción
-           System.err.println("Paciente no encontrado con el número de teléfono: " + phoneNumber);
-       }
-
-       // Devolver la lista filtrada de datos clínicos
-       return filteredData;
-   }
-	
-	/*
-	public List<ClinicalData> getClinicalData(String phoneNumber, String category) {
-	    return patientRepository.findByPhoneNumberWithClinicalData(phoneNumber) // Usar la consulta que incluye categorías
-	            .map(patient -> patient.getClinicalDataList().stream()
-	                    .filter(data -> data.getCategory() != null && data.getCategory().getId().equals(category))
-	                    .collect(Collectors.toList()))
-	            .orElse(new ArrayList<>());
-	}
-	*/
-
-	/**
 	 * Obtiene un paciente con sus datos clínicos cargados por número de teléfono.
 	 *
 	 * @param phoneNumber Número de teléfono del paciente.
@@ -453,8 +397,133 @@ public class PatientService {
        patientRepository.save(patient);
    }
 
-  
+	/**
+    * Obtiene todos los datos clínicos de un paciente específico filtrados por categoría.
+    *
+    * @param phoneNumber Número de teléfono del paciente.
+    * @param category    ID de la categoría para filtrar.
+    * @return Lista de datos clínicos que pertenecen a la categoría especificada.
+    */
+   @Transactional(readOnly = true)
+   public List<ClinicalData> getClinicalData(String phoneNumber, String category) {
+       List<ClinicalData> filteredData = new ArrayList<>();
 
+       // Intentar encontrar al paciente por su número de teléfono, incluyendo los datos clínicos y categorías asociadas
+       Optional<PatientData> optionalPatient = patientRepository.findByPhoneNumberWithClinicalData(phoneNumber);
+
+       // Verificar si el paciente existe
+       if (optionalPatient.isPresent()) {
+           PatientData patient = optionalPatient.get();
+
+           // Obtener la lista de datos clínicos del paciente
+           List<ClinicalData> clinicalDataList = patient.getClinicalDataList();
+
+           // Verificar que la lista de datos clínicos no sea nula
+           if (clinicalDataList != null && !clinicalDataList.isEmpty()) {
+               // Iterar sobre cada dato clínico
+               for (ClinicalData data : clinicalDataList) {
+                   // Verificar que la categoría del dato clínico no sea nula
+                   if (data.getCategory() != null) {
+                       // Comparar el ID de la categoría del dato clínico con la categoría filtrada
+                       if (data.getCategory().getId().equals(category)) {
+                           // Añadir el dato clínico a la lista filtrada
+                           filteredData.add(data);
+                       }
+                   }
+               }
+           }
+       } else {
+           // Si el paciente no se encuentra, se puede manejar según sea necesario
+           // Por ejemplo, registrar un mensaje de advertencia o lanzar una excepción
+           System.out.println("Paciente no encontrado con el número de teléfono: " + phoneNumber);
+       }
+
+       // Devolver la lista filtrada de datos clínicos
+       return filteredData;
+   }
+   /*
+   @Transactional(readOnly = true)
+   public List<ClinicalData> getClinicalData(String phoneNumber, String category) {
+       // Inicializar una lista para almacenar los datos clínicos filtrados
+       List<ClinicalData> filteredData = new ArrayList<>();
+
+       // Intentar encontrar al paciente por su número de teléfono, incluyendo los datos clínicos y categorías asociadas
+       Optional<PatientData> optionalPatient = patientRepository.findByPhoneNumberWithClinicalData(phoneNumber);
+
+       // Verificar si el paciente existe
+       if (optionalPatient.isPresent()) {
+           PatientData patient = optionalPatient.get();
+
+           // Obtener la lista de datos clínicos del paciente
+           List<ClinicalData> clinicalDataList = patient.getClinicalDataList();
+
+           // Verificar que la lista de datos clínicos no sea nula
+           if (clinicalDataList != null && !clinicalDataList.isEmpty()) {
+               // Iterar sobre cada dato clínico
+               for (ClinicalData data : clinicalDataList) {
+                   // Verificar que la categoría del dato clínico no sea nula
+                   if (data.getCategory() != null) {
+                       // Comparar el ID de la categoría del dato clínico con la categoría filtrada
+                       if (data.getCategory().getId().equals(category)) {
+                           // Añadir el dato clínico a la lista filtrada
+                           filteredData.add(data);
+                       }
+                   }
+               }
+           }
+       } else {
+           // Si el paciente no se encuentra, se puede manejar según sea necesario
+           // Por ejemplo, registrar un mensaje de advertencia o lanzar una excepción
+           System.err.println("Paciente no encontrado con el número de teléfono: " + phoneNumber);
+       }
+
+       // Devolver la lista filtrada de datos clínicos
+       return filteredData;
+   }
+   */
+
+   /**
+    * Recupera todos los pacientes ordenados por fecha de última actualización descendente.
+    *
+    * @return Lista de pacientes ordenados por fecha de última actualización.
+    */
+   @Transactional(readOnly = true)
+   public List<PatientData> getAllPatientsOrderedByLastUpdatedDesc() {
+       return patientRepository.findAllWithClinicalDataOrderByLastUpdatedDesc();
+   }
+
+   /**
+    * Recupera todos los pacientes ordenados por estado según prioridad definida.
+    *
+    * @return Lista de pacientes ordenados por estado.
+    */
+   @Transactional(readOnly = true)
+   public List<PatientData> getAllPatientsOrderedByStatus() {
+       return patientRepository.findAllWithClinicalDataOrderByStatus();
+   }
    
+   /**
+    * Recupera todos los pacientes ordenados alfabéticamente por nombre de forma ascendente.
+    *
+    * @return Lista de pacientes ordenados por nombre ascendente.
+    */
+   @Transactional(readOnly = true)
+   public List<PatientData> getAllPatientsOrderedByNameAsc() {
+       // Utiliza el método del repositorio para obtener la lista ordenada
+       List<PatientData> patients = patientRepository.findAllWithClinicalDataOrderByNameAsc();
+       
+       // Retorna la lista obtenida; puede agregar lógica adicional si es necesario
+       return patients;
+   }
+   
+   /**
+    * Recupera todos los pacientes ordenados por categoría de forma ascendente.
+    *
+    * @return Lista de pacientes ordenados por categoría ascendente.
+    */
+   @Transactional(readOnly = true)
+   public List<PatientData> getAllPatientsOrderedByCategoryAsc() {
+       return patientRepository.findAllWithClinicalDataOrderByCategoryAsc();
+   }
 
 }

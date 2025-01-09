@@ -71,5 +71,59 @@ public interface PatientRepository extends JpaRepository<PatientData, String> {
 
 	@Query("SELECT p FROM PatientData p WHERE p.status = :status")
 	List<PatientData> findByStatus(@Param("status") String status);
+   
+   //
+	 /**
+    * Recupera todos los pacientes con sus datos clínicos y categorías,
+    * ordenados por nombre de categoría de forma ascendente.
+    *
+    * @return Lista de pacientes ordenados por nombre de categoría ascendente.
+    */
+   @Query("SELECT DISTINCT p FROM PatientData p " +
+          "LEFT JOIN FETCH p.clinicalDataList cd " +
+          "LEFT JOIN FETCH cd.category cat " +
+          "ORDER BY cat.name ASC")
+   List<PatientData> findAllWithClinicalDataOrderByCategoryAsc();
+
+   /**
+    * Recupera todos los pacientes con sus datos clínicos y categorías,
+    * ordenados alfabéticamente por nombre de forma ascendente.
+    *
+    * @return Lista de pacientes ordenados por nombre ascendente.
+    */
+   @Query("SELECT DISTINCT p FROM PatientData p " +
+          "LEFT JOIN FETCH p.clinicalDataList cd " +
+          "LEFT JOIN FETCH cd.category cat " +
+          "ORDER BY p.name ASC")
+   List<PatientData> findAllWithClinicalDataOrderByNameAsc();
+
+   /**
+    * Recupera todos los pacientes con sus datos clínicos y categorías,
+    * ordenados por fecha de última actualización descendente.
+    *
+    * @return Lista de pacientes ordenados por fecha de última actualización.
+    */
+   @Query("SELECT DISTINCT p FROM PatientData p " +
+          "LEFT JOIN FETCH p.clinicalDataList cd " +
+          "LEFT JOIN FETCH cd.category cat " +
+          "ORDER BY p.updatedAt DESC")
+   List<PatientData> findAllWithClinicalDataOrderByLastUpdatedDesc();
+
+   /**
+    * Recupera todos los pacientes con sus datos clínicos y categorías,
+    * ordenados por estado según prioridad definida.
+    *
+    * @return Lista de pacientes ordenados por estado.
+    */
+   @Query("SELECT DISTINCT p FROM PatientData p " +
+          "LEFT JOIN FETCH p.clinicalDataList cd " +
+          "LEFT JOIN FETCH cd.category cat " +
+          "ORDER BY " +
+          "CASE WHEN p.status = 'Urgente' THEN 1 " +
+          "     WHEN p.status = 'Pendiente' THEN 2 " +
+          "     WHEN p.status = 'En curso' THEN 3 " +
+          "     WHEN p.status = 'Completado' THEN 4 " +
+          "     ELSE 5 END ASC")
+   List<PatientData> findAllWithClinicalDataOrderByStatus();
 
 }

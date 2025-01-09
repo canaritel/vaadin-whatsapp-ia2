@@ -69,7 +69,7 @@ public class ClinicalData {
 	 */
 	@Column(name = "date", nullable = false)
 	private LocalDateTime date;
-	
+			
 	@Override
    public String toString() {
         return "ClinicalData{" +
