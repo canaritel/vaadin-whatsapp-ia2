@@ -14,6 +14,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import es.televoip.model.entities.ClinicalData;
 import es.televoip.model.entities.PatientData;
 import es.televoip.service.CategoryService;
 import es.televoip.service.PatientService;
@@ -43,9 +44,14 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
     // Inyecta I18nUtil
     private final I18nUtil i18nUtil;
 
-    // Componente de ordenación
+    // ComboBoxes
     private ComboBox<String> sortComboBox;
+    private ComboBox<String> statusFilterComboBox;
+    private ComboBox<String> categoryFilterComboBox;
+
     private String currentSortOption = "Nombre"; // Valor por defecto
+    private String currentStatusFilter = "";
+    private String currentCategoryFilter = "";
 
     public PatientDataView(PatientService dataManager, CategoryService categoryManager, I18nUtil i18nUtil) {
         this.dataManager = dataManager;
@@ -172,6 +178,7 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
         searchField.setClearButtonVisible(true);
         searchField.setValueChangeMode(ValueChangeMode.LAZY);
         searchField.addClassName("custom-status-filter"); 
+        searchField.setClearButtonVisible(true); // mostrar botón para limpiar la selección
         
         // Listener para agregar o quitar clase activa
         searchField.addValueChangeListener(event -> {
@@ -189,18 +196,68 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
         sortComboBox.setPlaceholder("Ordenar por"); // Establecer el placeholder
         sortComboBox.setItems("Nombre", "Última Actualización", "Estado", "Categoría"); // Reemplazar "Severidad" por "Categoría"
         sortComboBox.setValue("Nombre"); // Valor por defecto
-
+        sortComboBox.setClearButtonVisible(true); // mostrar botón para limpiar la selección
         // Listener para cambios en la ordenación
         sortComboBox.addValueChangeListener(event -> {
             String selectedSort = event.getValue();
             currentSortOption = selectedSort; // Actualizar la opción actual
 
+            // Limpiar filtros secundarios
+            currentStatusFilter = "";
+            currentCategoryFilter = "";
+            statusFilterComboBox.clear();
+            categoryFilterComboBox.clear();
+            statusFilterComboBox.setVisible(false);
+            categoryFilterComboBox.setVisible(false);
+
             // Refrescar la lista de pacientes según la nueva opción de ordenación
             refreshUserList();
         });
 
+        // ComboBox secundario para filtrar por Estado
+        statusFilterComboBox = new ComboBox<>();
+        statusFilterComboBox.setPlaceholder("Seleccionar Estado");
+        statusFilterComboBox.setItems("Pendiente", "Urgente", "Completo"); // Ajusta según tus estados reales
+        statusFilterComboBox.setVisible(false); // Oculto por defecto
+        statusFilterComboBox.setClearButtonVisible(true); // mostrar botón para limpiar la selección
+
+        // Listener para filtrar por Estado
+        statusFilterComboBox.addValueChangeListener(event -> {
+            currentStatusFilter = event.getValue();
+            refreshUserList();
+        });
+
+        // ComboBox secundario para filtrar por Categoría
+        categoryFilterComboBox = new ComboBox<>();
+        categoryFilterComboBox.setPlaceholder("Seleccionar Categoría");
+        // Asumiendo que CategoryService tiene un método para obtener todas las categorías
+        List<String> categories = categoryManager.getAllCategoryNames();
+        categoryFilterComboBox.setItems(categories);
+        categoryFilterComboBox.setVisible(false); // Oculto por defecto
+
+        // Listener para filtrar por Categoría
+        categoryFilterComboBox.addValueChangeListener(event -> {
+            currentCategoryFilter = event.getValue();
+            refreshUserList();
+        });
+
+        // Listener para mostrar el ComboBox secundario según la selección en sortComboBox
+        sortComboBox.addValueChangeListener(event -> {
+            String selectedSort = event.getValue();
+            if ("Estado".equals(selectedSort)) {
+                statusFilterComboBox.setVisible(true);
+                categoryFilterComboBox.setVisible(false);
+            } else if ("Categoría".equals(selectedSort)) {
+                categoryFilterComboBox.setVisible(true);
+                statusFilterComboBox.setVisible(false);
+            } else {
+                statusFilterComboBox.setVisible(false);
+                categoryFilterComboBox.setVisible(false);
+            }
+        });
+
         // Añadir los componentes al header
-        header.add(searchField, sortComboBox);
+        header.add(searchField, sortComboBox, statusFilterComboBox, categoryFilterComboBox);
         header.setFlexGrow(1, searchField); // El campo de búsqueda ocupa el espacio restante
 
         userListLayout.add(header);
@@ -225,7 +282,7 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
     }
 
     /**
-     * Método para refrescar la lista de pacientes según la opción de ordenación seleccionada.
+     * Método para refrescar la lista de pacientes según la opción de ordenación seleccionada y los filtros aplicados.
      */
     private void refreshUserList() {
         patientList.removeAll(); // Limpia la lista existente
@@ -251,6 +308,15 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
                 break;
         }
 
+        // Aplicar filtros adicionales
+        if ("Estado".equals(currentSortOption) && !currentStatusFilter.isEmpty()) {
+            patients.removeIf(patient -> !patient.getStatus().equalsIgnoreCase(currentStatusFilter));
+        }
+
+        if ("Categoría".equals(currentSortOption) && !currentCategoryFilter.isEmpty()) {
+            patients.removeIf(patient -> !patientHasCategory(patient, currentCategoryFilter));
+        }
+
         // Iterar sobre cada paciente y añadirlo a la UI
         for (PatientData patient : patients) {
             // Usa el método para cargar datos relacionados
@@ -270,60 +336,34 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
     }
 
     /**
+     * Verifica si un paciente tiene al menos un ClinicalData con la categoría especificada.
+     *
+     * @param patient           El paciente a verificar.
+     * @param categoryToFilter  La categoría a buscar.
+     * @return true si el paciente tiene al menos una ClinicalData con la categoría especificada, false en caso contrario.
+     */
+    private boolean patientHasCategory(PatientData patient, String categoryToFilter) {
+        if (patient.getClinicalDataList() == null) {
+            return false;
+        }
+
+        for (ClinicalData cd : patient.getClinicalDataList()) {
+            if (cd.getCategory() != null && cd.getCategory().getName().equalsIgnoreCase(categoryToFilter)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Filtra la lista de pacientes según el término de búsqueda y la opción de ordenación seleccionada.
      *
      * @param searchTerm Término de búsqueda ingresado por el usuario.
      */
     private void filterUsers(String searchTerm) {
-        patientList.removeAll(); // Limpia la lista existente
-
-        // Utilizar el método de servicio para buscar pacientes
-        List<PatientData> filteredPatients = dataManager.findByNameOrPhoneOrEmail(searchTerm);
-
-        // Lista para almacenar los pacientes filtrados y ordenados
-        List<PatientData> patients = new ArrayList<>();
-
-        // Obtener la lista de pacientes ordenados según la opción actual
-        switch (currentSortOption) {
-            case "Nombre":
-                patients = dataManager.getAllPatientsOrderedByNameAsc();
-                break;
-            case "Última Actualización":
-                patients = dataManager.getAllPatientsOrderedByLastUpdatedDesc();
-                break;
-            case "Estado":
-                patients = dataManager.getAllPatientsOrderedByStatus();
-                break;
-            case "Categoría":
-                patients = dataManager.getAllPatientsOrderedByCategoryAsc();
-                break;
-            default:
-                patients = dataManager.getAllPatientsOrderedByNameAsc();
-                break;
-        }
-
-        // Filtrar la lista ordenada según el término de búsqueda
-        for (PatientData patient : patients) {
-            if (patient.getName().toLowerCase().contains(searchTerm.toLowerCase()) ||
-                patient.getPhoneNumber().contains(searchTerm) ||
-                (patient.getEmail() != null && patient.getEmail().toLowerCase().contains(searchTerm.toLowerCase()))) {
-                patients.add(patient);
-            }
-        }
-
-        // Añadir los pacientes filtrados a la UI
-        for (PatientData patient : patients) {
-            HorizontalLayout patientItem = uiManager.createPatientListItem(patient);
-            patientList.add(patientItem);
-        }
-
-        // Si no hay coincidencias, mostrar un mensaje
-        if (patients.isEmpty()) {
-            Div noResults = new Div();
-            noResults.setText(i18nUtil.get("message.noMatches"));
-            noResults.addClassName("no-results"); // Clase CSS para estilos
-            patientList.add(noResults);
-        }
+        // El filtrado se realiza dentro de refreshUserList según los filtros aplicados
+        refreshUserList();
     }
 
     /**
@@ -335,11 +375,12 @@ public class PatientDataView extends HorizontalLayout implements Translatable {
         getUI().ifPresent(ui -> ui.getPage().setTitle(i18nUtil.get("page.title.clinicData")));
 
         // Actualizar textos de los componentes existentes
-        // Por ejemplo, recrear los paneles para actualizar los textos dinámicamente
-        //createUserPanel();
-        //createChatPanel();
-        //createClinicalPanel();
-        
+        // Por ejemplo, actualizar los placeholders y labels
+        sortComboBox.setPlaceholder("Ordenar por"); // Actualizar placeholder si es necesario
+        statusFilterComboBox.setPlaceholder("Seleccionar Estado");
+        categoryFilterComboBox.setPlaceholder("Seleccionar Categoría");
+        // Actualizar otros textos según sea necesario
+
         // Recargar la página para aplicar las traducciones
         UI.getCurrent().getPage().reload();
     }

@@ -368,4 +368,15 @@ public class CategoryService {
         log.info("Categorías reordenadas.");
     }
     
+    /**
+     * Obtiene una lista de todos los nombres de categorías disponibles.
+     *
+     * @return Lista de nombres de categorías.
+     */
+    public List<String> getAllCategoryNames() {
+        return categoryRepository.findAll().stream()
+                .map(Category::getName)
+                .toList();
+    }
+    
 }
